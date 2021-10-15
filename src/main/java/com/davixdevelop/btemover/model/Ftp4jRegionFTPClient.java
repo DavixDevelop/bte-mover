@@ -8,10 +8,11 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Hashtable;
 import java.util.Objects;
@@ -404,5 +405,229 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
     public boolean sendNoOpCommand() throws Exception {
         noop();
         return true;
+    }
+
+    /**
+     * Get's the content of the 2d region file on the remote server
+     * @param region The region to get
+     * @return Byte array representing the content of the 2d region
+     */
+    @Override
+    public byte[] get2DRegion(Region region) {
+        byte[] content = null;
+
+        final boolean[] result = {false};
+        try{
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+            String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
+                    "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
+
+            setType(FTPClient.TYPE_BINARY);
+
+            download(source, byteArrayOutputStream, 0, new FTPDataTransferListener() {
+                @Override
+                public void started() {
+
+                }
+
+                @Override
+                public void transferred(int length) {
+
+                }
+
+                @Override
+                public void completed() {
+                    result[0] = true;
+                }
+
+                @Override
+                public void aborted() {
+                    result[0] = false;
+                }
+
+                @Override
+                public void failed() {
+                    result[0] = false;
+                }
+            });
+
+            //Read byte output stream to array
+            if(result[0]){
+                byteArrayOutputStream.flush();
+                content = byteArrayOutputStream.toByteArray();
+                byteArrayOutputStream.close();
+            }
+
+        }catch (Exception ex){
+            content = null;
+            LogUtils.log(ex);
+        }
+
+        return content;
+    }
+
+    /**
+     * Get's the content of the 2d region file on the remote server
+     * @param region3DName The name of the 3d region to get
+     * @return Byte array representing the content of the 3d region
+     */
+    @Override
+    public byte[] get3DRegion(String region3DName) {
+        byte[] content = null;
+
+        final boolean[] result = {false};
+        try{
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+            String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
+                    "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
+
+            setType(FTPClient.TYPE_BINARY);
+
+            download(source, byteArrayOutputStream, 0, new FTPDataTransferListener() {
+                @Override
+                public void started() {
+
+                }
+
+                @Override
+                public void transferred(int length) {
+
+                }
+
+                @Override
+                public void completed() {
+                    result[0] = true;
+                }
+
+                @Override
+                public void aborted() {
+                    result[0] = false;
+                }
+
+                @Override
+                public void failed() {
+                    result[0] = false;
+                }
+            });
+
+            //Read byte output stream to array
+            if(result[0]){
+                byteArrayOutputStream.flush();
+                content = byteArrayOutputStream.toByteArray();
+                byteArrayOutputStream.close();
+            }
+
+
+
+
+        }catch (Exception ex){
+            content = null;
+            LogUtils.log(ex);
+        }
+
+        return content;
+    }
+
+
+    /**
+     * Uploads a 2d region with it's content to a server
+     * @param content The byte array content of the 2d region
+     * @param region The target region
+     * @return The success of the upload
+     */
+    @Override
+    public boolean put2DRegion(byte[] content, Region region) {
+        boolean[] result = {false};
+        try{
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
+            String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
+
+            setType(FTPClient.TYPE_BINARY);
+
+            upload(target, byteArrayInputStream, 0, 0, new FTPDataTransferListener() {
+                @Override
+                public void started() {
+
+                }
+
+                @Override
+                public void transferred(int length) {
+
+                }
+
+                @Override
+                public void completed() {
+                    result[0] = true;
+                }
+
+                @Override
+                public void aborted() {
+                    result[0] = false;
+                }
+
+                @Override
+                public void failed() {
+                    result[0] = false;
+                }
+            });
+
+            byteArrayInputStream.close();
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            result[0] = false;
+        }
+        return result[0];
+    }
+
+    /**
+     * Uploads a 3d region with it's content to a server
+     * @param content The byte array content of the 3d region
+     * @param region3DName The target 3d region
+     * @return The success of the upload
+     */
+    @Override
+    public boolean put3DRegion(byte[] content, String region3DName) {
+        boolean[] result = {false};
+        try{
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
+            String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
+
+            setType(FTPClient.TYPE_BINARY);
+
+            upload(target, byteArrayInputStream, 0, 0, new FTPDataTransferListener() {
+                @Override
+                public void started() {
+
+                }
+
+                @Override
+                public void transferred(int length) {
+
+                }
+
+                @Override
+                public void completed() {
+                    result[0] = true;
+                }
+
+                @Override
+                public void aborted() {
+                    result[0] = false;
+                }
+
+                @Override
+                public void failed() {
+                    result[0] = false;
+                }
+            });
+
+            byteArrayInputStream.close();
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            result[0] = false;
+        }
+        return result[0];
     }
 }

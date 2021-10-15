@@ -465,7 +465,7 @@ public class Mover_View extends JFrame {
     }
     public void setSourceFTP_label(String text){sourceFTP_label.setText(text);}
     public void setTargetFTP_label(String text){targetFTP_label.setText(text);}
-    public void enablePreviewButton(boolean enable){
+    public void enableToolButtons(boolean enable){
             previewButton.setEnabled(enable);
             mapPanel.getOsmToggleButton().setEnabled(enable);
             mapPanel.getExportButton().setEnabled(enable);

@@ -3,8 +3,6 @@ package com.davixdevelop.btemover.logic;
 import com.davixdevelop.btemover.model.Mover_Model;
 import com.davixdevelop.btemover.model.QueriedRegion;
 import com.davixdevelop.btemover.model.Region;
-import com.davixdevelop.btemover.model.TimerModel;
-import com.davixdevelop.btemover.utils.LogUtils;
 import com.davixdevelop.btemover.view.UIVars;
 import com.davixdevelop.btemover.view.components.FTPDialog;
 import com.davixdevelop.btemover.view.Mover_View;
@@ -21,19 +19,17 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class Mover_Controller implements IMoverModelObserver {
-    private Mover_Model model;
-    private Mover_View view;
+    private final Mover_Model model;
+    private final Mover_View view;
 
 
 
     public Mover_Controller(){
         model = new Mover_Model(this);
-        //Setup temp folder for downloaded source regions
-        model.setupTempFolder();
+        //model.setupTempFolder();
         view = new Mover_View(model);
 
         initListeners();
@@ -109,20 +105,17 @@ public class Mover_Controller implements IMoverModelObserver {
         view.initPreviewListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        model.previewTransfers();
-                /*SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        view.enableTransferButton(previewTransfers);
-                    }
-                });
-                */
-                    }
+                Runnable runnable = () -> {
+                    model.previewTransfers();
+            /*SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    view.enableTransferButton(previewTransfers);
+                }
+            });
+            */
                 };
-                view.enablePreviewButton(false);
+                view.enableToolButtons(false);
                 view.showSpinner(true);
                 Thread thread = new Thread(runnable);
                 thread.start();
@@ -132,7 +125,7 @@ public class Mover_Controller implements IMoverModelObserver {
         view.initTransferListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                view.enablePreviewButton(false);
+                view.enableToolButtons(false);
                 view.enableTransferButton(false);
                 model.transferRegions();
             }
@@ -145,8 +138,8 @@ public class Mover_Controller implements IMoverModelObserver {
                 GTRenderer renderer = new StreamingRenderer();
                 renderer.setMapContent(model.getMapContent());
 
-                Rectangle rectangleImage = null;
-                ReferencedEnvelope mapEnvelope = null;
+                Rectangle rectangleImage;
+                ReferencedEnvelope mapEnvelope;
 
                 try{
                     mapEnvelope = model.getMapContent().getViewport().getBounds();
@@ -181,7 +174,7 @@ public class Mover_Controller implements IMoverModelObserver {
                     if(result == JFileChooser.APPROVE_OPTION){
                         File imageFile = fileChooser.getSelectedFile();
                         if(!FilenameUtils.getExtension(imageFile.getPath()).equalsIgnoreCase("png")){
-                            imageFile = new File(imageFile.toString() + ".png");
+                            imageFile = new File(imageFile + ".png");
                         }
 
                         //Write buffered image to file
@@ -214,11 +207,7 @@ public class Mover_Controller implements IMoverModelObserver {
     }
 
     public void refreshPreviewButton(){
-        if(model.getShapefilePath() != "" && model.getTargetFTP() != null && model.getSourceFTP() != null)
-            view.enablePreviewButton(true);
-        else
-            view.enablePreviewButton(false);
-
+        view.enableToolButtons(!Objects.equals(model.getShapefilePath(),"") && model.getTargetFTP() != null && model.getSourceFTP() != null);
     }
 
     /**
@@ -230,15 +219,10 @@ public class Mover_Controller implements IMoverModelObserver {
      */
     @Override
     public void previewTransfers(Integer status) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                model.updateQuery();
-            }
-        });
+        SwingUtilities.invokeLater(model::updateQuery);
 
         view.showSpinner(false);
-        view.enablePreviewButton(true);
+        view.enableToolButtons(true);
 
         if (model.getShapefileLayerStatus() == 1) {
             view.getMapPanel().setMapContent(model.getMapContent());
@@ -316,35 +300,32 @@ public class Mover_Controller implements IMoverModelObserver {
 
     @Override
     public void setQueryItemCount(Region region, Integer count) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                DefaultListModel queryModel =  model.getQueryModel();
-                for(int i = 0; i < queryModel.getSize(); i++){
-                    QueriedRegion queriedRegion = (QueriedRegion) queryModel.get(i);
-                    if(queriedRegion.getName() == region.getName()){
+        SwingUtilities.invokeLater(() -> {
+            DefaultListModel queryModel =  model.getQueryModel();
+            for(int i = 0; i < queryModel.getSize(); i++){
+                QueriedRegion queriedRegion = (QueriedRegion) queryModel.get(i);
+                if(Objects.equals(queriedRegion.getName(), region.getName())){
 
-                        queryModel.removeElement(queriedRegion);
-                        //Update query item count
-                        queriedRegion.setNum3d(count);
+                    queryModel.removeElement(queriedRegion);
+                    //Update query item count
+                    queriedRegion.setNum3d(count);
 
-                        queryModel.add(0,queriedRegion);
+                    queryModel.add(0,queriedRegion);
 
-                        /*
-                        //If query item isn't on first place, set it as first place, and move the previous first item to the old index
-                        if(i != 0){
-                            QueriedRegion firstElement = (QueriedRegion)queryModel.get(0);
+                    /*
+                    //If query item isn't on first place, set it as first place, and move the previous first item to the old index
+                    if(i != 0){
+                        QueriedRegion firstElement = (QueriedRegion)queryModel.get(0);
 
-                            /*queryModel.set(0, queriedRegion);
-                            queryModel.set(i, firstElement);
+                        /*queryModel.set(0, queriedRegion);
+                        queryModel.set(i, firstElement);
 
-                        }else{
-                            //if not, just set the updated query item back to first place
-                            queryModel.set(0, queriedRegion);
-                        }*/
+                    }else{
+                        //if not, just set the updated query item back to first place
+                        queryModel.set(0, queriedRegion);
+                    }*/
 
-                        break;
-                    }
+                    break;
                 }
             }
         });
@@ -364,6 +345,7 @@ public class Mover_Controller implements IMoverModelObserver {
      * @param status: >0 - Manual progress
      *                -1 - Increase region2d progress
      *                -2 - Increase region3d progress
+     *                -3 - Done
      */
     @Override
     public void updateProgress(Integer status) {
@@ -372,6 +354,20 @@ public class Mover_Controller implements IMoverModelObserver {
             model.getTimerModel().Increase2DRegions();
         } else if (status == -2) {
             model.getTimerModel().Increase3DRegions();
+        }else if(status == -3){
+            long currentTime = System.currentTimeMillis();
+            long elapsedTime = currentTime - model.getTimerModel().getStartTime();
+            long second = (elapsedTime / 1000) % 60;
+            long minute = (elapsedTime / (1000 * 60)) % 60;
+            long hour = (elapsedTime / (1000 * 60 * 60)) % 24;
+
+            view.setProgressText(String.format("DONE IN: %02d:%02d:%02d Reg2D: %d/%d Reg3D: %d/%d", hour, minute, second,
+                    model.getTimerModel().getProgress2DRegions(),
+                    model.getTimerModel().getTotal2DRegions(),
+                    model.getTimerModel().getProgress3DRegions(),
+                    model.getTimerModel().getTotal3DRegions()));
+
+            return;
         }
 
         //long millis = 0;
@@ -382,29 +378,29 @@ public class Mover_Controller implements IMoverModelObserver {
 
         int completeRegions = (status == -1 || status == -2) ? model.getTimerModel().getProgress2DRegions() + model.getTimerModel().getProgress3DRegions() : status;
 
-        if(completeRegions == model.getTimerModel().getTotalRegions()){
-            String wat = "0";
-        }
-
         long elapsedTime = currentTime - model.getTimerModel().getStartTime();
         long progressTime = elapsedTime * model.getTimerModel().getTotalRegions() / completeRegions;
-        long eta = progressTime - elapsedTime;
+        long etr = progressTime - elapsedTime;
 
         //millis = eta % 1000;
-        second = (eta / 1000) % 60;
-        minute = (eta / (1000 * 60)) % 60;
-        hour = (eta / (1000 * 60 * 60)) % 24;
+        second = (etr / 1000) % 60;
+        minute = (etr / (1000 * 60)) % 60;
+        hour = (etr / (1000 * 60 * 60)) % 24;
 
-        view.setProgressText(String.format("ETA: %02d:%02d:%02d Reg2D: %d/%d Reg3D: %d/%d", hour, minute, second,
+        view.setProgressText(String.format("ETR: %02d:%02d:%02d Reg2D: %d/%d Reg3D: %d/%d", hour, minute, second,
                 model.getTimerModel().getProgress2DRegions(),
                 model.getTimerModel().getTotal2DRegions(),
                 model.getTimerModel().getProgress3DRegions(),
                 model.getTimerModel().getTotal3DRegions()));
+
     }
 
     @Override
     public void transferDone() {
-        view.enablePreviewButton(true);
+        //Enable back the preview button and other tool buttons
+        if(model.IncreaseThreadsDone() == model.getThreadCount()){
+            view.enableToolButtons(true);
+        }
     }
 
     @Override
@@ -414,33 +410,19 @@ public class Mover_Controller implements IMoverModelObserver {
 
     @Override
     public void setQueryItemIcon(Region region, Integer status) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                DefaultListModel queryModel =  model.getQueryModel();
-                for(int i = 0; i < queryModel.getSize(); i++){
-                    QueriedRegion queriedRegion = (QueriedRegion) queryModel.get(i);
-                    if(queriedRegion.getName() == region.getName()){
-                        queryModel.removeElement(queriedRegion);
+        SwingUtilities.invokeLater(() -> {
+            DefaultListModel queryModel =  model.getQueryModel();
+            for(int i = 0; i < queryModel.getSize(); i++){
+                QueriedRegion queriedRegion = (QueriedRegion) queryModel.get(i);
+                if(Objects.equals(queriedRegion.getName(), region.getName())){
+                    queryModel.removeElement(queriedRegion);
 
-                        //Update query item status
-                        queriedRegion.setStatus(status);
+                    //Update query item status
+                    queriedRegion.setStatus(status);
 
-                        queryModel.add(0, queriedRegion);
+                    queryModel.add(0, queriedRegion);
 
-                        /*
-                        //If query item isn't on first place, set it as first place, and move the previous first item to the old index
-                        if(i != 0){
-                            QueriedRegion firstElement = (QueriedRegion)queryModel.get(0);
-                            queryModel.set(0, queriedRegion);
-                            queryModel.set(i, firstElement);
-                        }else{
-                            //if not, just set the updated query item back to first place
-                            queryModel.set(0, queriedRegion);
-                        }*/
-
-                        break;
-                    }
+                    break;
                 }
             }
         });

@@ -14,7 +14,7 @@ public interface IMoverModelObserver {
      *              2 - Error connecting to Source FTP
      *              3 - Error connecting to Target FTP
      */
-    public void previewTransfers(Integer status);
+    void previewTransfers(Integer status);
 
     /**
      *
@@ -23,21 +23,32 @@ public interface IMoverModelObserver {
      *               2 - Target layer
      *               3 - Transfer layer
      */
-    public void zoomToLayers(Integer status);
-    public void showMessage(String[] message);
-    public void setQueryItemIcon(Region region, Integer status);
-    public void setQueryItemCount(Region region, Integer count);
-    public void updateTransferCounts();
+    void zoomToLayers(Integer status);
+    void showMessage(String[] message);
+
+    /**
+     * Set's the region query icon in the DefaultListModel
+     * @param region The region to update It's query item icon
+     * @param status 0. None
+     *               1. Downloading
+     *               2. Uploading
+     *               3. Done
+     *               4. Failed
+     */
+    void setQueryItemIcon(Region region, Integer status);
+    void setQueryItemCount(Region region, Integer count);
+    void updateTransferCounts();
 
     /**
      *
      * @param status: >0 - Manual progress
      *                -1 - Increase region2d progress
      *                -2 - Increase region3d progress
+     *                -3 - Done
      */
-    public void updateProgress(Integer status);
-    public void transferDone();
+    void updateProgress(Integer status);
+    void transferDone();
 
-    public void toggleOSMLayer(boolean toggle);
+    void toggleOSMLayer(boolean toggle);
 
 }
