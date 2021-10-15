@@ -1,0 +1,81 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:4.0.0"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+mainClassName = 'com.davixdevelop.btemover.Mover_Main'
+
+group 'com.davixdevelop'
+version '1.0'
+
+repositories {
+    maven {
+        name = "GeoToolkit"
+        url = "https://nexus.geomatys.com/repository/geotoolkit/"
+    }
+
+    mavenCentral()
+    jcenter()
+
+    maven {
+        name = "JitPack"
+        url = "https://jitpack.io/"
+    }
+
+    // DaPorchop's repo for PorkLib
+    maven {
+        name = "DaPorkchop_"
+        url = "https://maven.daporkchop.net/"
+    }
+
+    // This is for leveldb
+    maven {
+        name = "OpenCollab Snapshots"
+        url = "https://repo.opencollab.dev/snapshot/"
+    }
+
+    maven {
+        name = "SpongePowered"
+        url = "https://repo.spongepowered.org/maven/"
+    }
+
+    maven {
+        name = "OSGeo"
+        url = "https://repo.osgeo.org/repository/release/"
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'org.mockftpserver:MockFtpServer:2.7.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    compile 'com.github.SmylerMC:terraminusminus:master-SNAPSHOT'
+    compile 'com.github.asbachb:ftp4j:master-SNAPSHOT'
+    compile 'com.jcraft:jsch:0.1.55'
+    compile 'commons-validator:commons-validator:1.7'
+    compile 'org.geotools:gt-swing:25.2'
+    compile 'org.geotools:gt-tile-client:25.2'
+    compile 'org.geotools:gt-epsg-hsql:25.2'
+    compile 'org.geotools:gt-shapefile:25.2'
+}
+
+shadowJar{
+    classifier = null
+
+    manifest{
+        attributes 'Main-Class' : 'com.davixdevelop.btemover.Mover_Main'
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
