@@ -57,7 +57,7 @@ public class Mover_Model implements IMoverModel {
         shapefilePath = _shapefilePath;
     }
 
-    private FTPOptions SourceFTP = new FTPOptions("ftp","192.168.0.26",2121,"Tiled","david","hard");
+    private FTPOptions SourceFTP;
     public FTPOptions getSourceFTP() {
         return SourceFTP;
     }
@@ -65,7 +65,7 @@ public class Mover_Model implements IMoverModel {
         SourceFTP = _sourceFTP;
     }
 
-    private FTPOptions TargetFTP = new FTPOptions("sftp","192.168.0.26",2222,"","david","hard");
+    private FTPOptions TargetFTP;
     public FTPOptions getTargetFTP() {
         return TargetFTP;
     }
