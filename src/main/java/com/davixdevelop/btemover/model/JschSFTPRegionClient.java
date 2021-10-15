@@ -4,7 +4,10 @@ import com.davixdevelop.btemover.utils.LogUtils;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpProgressMonitor;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Hashtable;
@@ -300,5 +303,183 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
     public boolean sendNoOpCommand() throws Exception {
         session.sendKeepAliveMsg();
         return true;
+    }
+
+    /**
+     * Get's the content of the 2d region file on the remote server
+     * @param region The region to get
+     * @return Byte array representing the content of the 2d region
+     */
+    @Override
+    public byte[] get2DRegion(Region region) {
+        final boolean[] result = {false};
+
+        byte[] content = null;
+        try{
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+            String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
+                    "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
+
+            channelSftp.get(source, byteArrayOutputStream);
+            channelSftp.get(source, byteArrayOutputStream, new SftpProgressMonitor() {
+                @Override
+                public void init(int op, String src, String dest, long max) {
+
+                }
+
+                @Override
+                public boolean count(long count) {
+                    return false;
+                }
+
+                @Override
+                public void end() {
+                    result[0] = true;
+                }
+            });
+
+            //Read byte output stream to array
+            if(result[0]) {
+                byteArrayOutputStream.flush();
+                content = byteArrayOutputStream.toByteArray();
+
+                byteArrayOutputStream.close();
+            }
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            content = null;
+        }
+
+        return content;
+    }
+
+    /**
+     * Get's the content of the 2d region file on the remote server
+     * @param region3DName The name of the 3d region to get
+     * @return Byte array representing the content of the 3d region
+     */
+    @Override
+    public byte[] get3DRegion(String region3DName) {
+        final boolean[] result = {false};
+        byte[] content = null;
+        try{
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+            String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
+                    "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
+
+            channelSftp.get(source, byteArrayOutputStream, new SftpProgressMonitor() {
+                @Override
+                public void init(int op, String src, String dest, long max) {
+
+                }
+
+                @Override
+                public boolean count(long count) {
+                    return false;
+                }
+
+                @Override
+                public void end() {
+                    result[0] = true;
+                }
+            });
+
+            //Read byte output stream to array
+            if(result[0]) {
+                byteArrayOutputStream.flush();
+                content = byteArrayOutputStream.toByteArray();
+
+                byteArrayOutputStream.close();
+            }
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            content = null;
+        }
+
+        return content;
+    }
+
+    /**
+     * Uploads a 2d region with it's content to a server
+     * @param content The byte array content of the 2d region
+     * @param region The target region
+     * @return The success of the upload
+     */
+    @Override
+    public boolean put2DRegion(byte[] content, Region region) {
+        final boolean[] result = {false};
+        try{
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
+
+            String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
+
+            channelSftp.put(byteArrayInputStream, target, new SftpProgressMonitor() {
+                @Override
+                public void init(int op, String src, String dest, long max) {
+
+                }
+
+                @Override
+                public boolean count(long count) {
+                    return false;
+                }
+
+                @Override
+                public void end() {
+                    result[0] = true;
+                }
+            });
+
+            byteArrayInputStream.close();
+
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            result[0] = false;
+        }
+
+        return result[0];
+    }
+
+    /**
+     * Uploads a 3d region with it's content to a server
+     * @param content The byte array content of the 3d region
+     * @param region3DName The target 3d region
+     * @return The success of the upload
+     */
+    @Override
+    public boolean put3DRegion(byte[] content, String region3DName) {
+        final boolean[] result = {false};
+        try{
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
+
+            String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
+
+            channelSftp.put(byteArrayInputStream, target, new SftpProgressMonitor() {
+                @Override
+                public void init(int op, String src, String dest, long max) {
+
+                }
+
+                @Override
+                public boolean count(long count) {
+                    return false;
+                }
+
+                @Override
+                public void end() {
+                    result[0] = true;
+                }
+            });
+
+            byteArrayInputStream.close();
+
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            result[0] = false;
+        }
+
+        return result[0];
     }
 }

@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * supplied ftpOption protocol
  * @author DavixDevelop
  */
-public class RegionFTPClient {
+public class RegionFTPClient implements IRegionFTPClient {
     private IRegionFTPClient ftpClient;
 
     /**
@@ -48,7 +48,7 @@ public class RegionFTPClient {
 
     /**
      * Get's and hashtable of regions from the server
-     * @return
+     * @return The hashtable of regions returned from the server
      */
     public Hashtable<String,Region> getRegions(){
         return ftpClient.getRegions();
@@ -98,7 +98,8 @@ public class RegionFTPClient {
      * The internal call to the chosen client testClient method
      * @return The success of the test
      */
-    private boolean internal_testClient(){
+    @Override
+    public boolean testClient() {
         return ftpClient.testClient();
     }
 
@@ -112,12 +113,54 @@ public class RegionFTPClient {
     }
 
     /**
+     * Get's the content of the 2d region file on the remote server
+     * @param region The region to get
+     * @return Byte array representing the content of the 2d region
+     */
+    @Override
+    public byte[] get2DRegion(Region region) {
+        return ftpClient.get2DRegion(region);
+    }
+
+    /**
+     * Get's the content of the 2d region file on the remote server
+     * @param region3DName The name of the 3d region to get
+     * @return Byte array representing the content of the 3d region
+     */
+    @Override
+    public byte[] get3DRegion(String region3DName) {
+        return ftpClient.get3DRegion(region3DName);
+    }
+
+    /**
+     * Uploads a 2d region with it's content to a server
+     * @param content The byte array content of the 2d region
+     * @param region The target region
+     * @return The success of the upload
+     */
+    @Override
+    public boolean put2DRegion(byte[] content, Region region) {
+        return ftpClient.put2DRegion(content, region);
+    }
+
+    /**
+     * Uploads a 3d region with it's content to a server
+     * @param content The byte array content of the 3d region
+     * @param region3DName The target 3d region
+     * @return The success of the upload
+     */
+    @Override
+    public boolean put3DRegion(byte[] content, String region3DName) {
+        return ftpClient.put3DRegion(content, region3DName);
+    }
+
+    /**
      * Test if the server can be connected to with the ftpOptions and the server contains the
      * region2d and region3d folder
      * @return The success of the test
      */
-    public static boolean testClient(FTPOptions _ftpOptions){
+    public static boolean testConnection(FTPOptions _ftpOptions){
         RegionFTPClient regionFTPClient = new RegionFTPClient(_ftpOptions);
-        return regionFTPClient.internal_testClient();
+        return regionFTPClient.testClient();
     }
 }

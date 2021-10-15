@@ -21,4 +21,9 @@ public interface IRegionFTPClient {
     boolean upload3DRegion(String region3DPath, String region3DName);
     boolean testClient();
     boolean sendNoOpCommand() throws Exception;
+
+    byte[] get2DRegion(Region region);
+    byte[] get3DRegion(String region3DName);
+    boolean put2DRegion(byte[] content, Region region);
+    boolean put3DRegion(byte[] content, String region3DName);
 }

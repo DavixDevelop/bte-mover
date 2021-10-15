@@ -42,13 +42,15 @@ Under the map we can also find the legend, that indicates each region type, with
 
 On the right side we can also see the query list, that show's which regions will get transferred. The first number shows the number 3d regions in the region, following with the name of the region itself.
 
-To transfer the marked regions, we press the `Transfer` button. During this process the region 2d files, and it's region 3d files get downloaded to your local temporary storage, get uploaded to the target server, and deleted from the temporary storage.
+To transfer the marked regions, we press the `Transfer` button. During this process the region 2d files content, and it's region 3d files content get downloaded to the memory and immediately the content of each file gets uploaded to the target server remote 2d/3d region file.
 
-While this is happening in the two background threads, the aforementioned query list. The icon on the right side indicates the status of the region (download/upload/done), while the number of 3d region is count down to 0 while downloading, and count up while uploading.
+While this is happening in the two background threads, the aforementioned query list gets constantly updated. The icon on the right side indicates the status of the region (download/upload/done), while the number of 3d region is count down to 0 for each processed region 3d file.
 <br> After each region's gets processed the map, and the legend also get updated.
 
 The application also displays an estimated time remain on the number of 2d/3d region processed on the bottom right. 
 If for any reason, the transfer fails for a region, it's status in the query list gets changed to an X.
+
+Once the transfer process finishes, the application display's on the bottom how long it took to transfer the files.
 
 ###Future plans
 The application is 99% finished, therefore the only thing that I intend to improve a bit is the look of the UI, like the scroller and more detailed notifying of errors  back to the user.

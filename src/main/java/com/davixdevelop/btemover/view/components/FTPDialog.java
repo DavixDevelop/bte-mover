@@ -4,7 +4,6 @@ import com.davixdevelop.btemover.model.FTPOptions;
 import com.davixdevelop.btemover.model.RegionFTPClient;
 import com.davixdevelop.btemover.utils.UIUtils;
 import com.davixdevelop.btemover.view.UIVars;
-import com.davixdevelop.btemover.view.style.RegionListRenderer;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.swing.*;
@@ -74,7 +73,7 @@ public class FTPDialog extends JDialog {
         testButton = new RoundedButton("Test");
         testButton.setAlternative(true);
 
-        ImageIcon paneIcon = null;
+        ImageIcon paneIcon;
 
         if(_inOptions == null) {
             okButton.setEnabled(false);
@@ -111,30 +110,24 @@ public class FTPDialog extends JDialog {
 
          setContentPane(optionPane);
          setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-         okButton.addActionListener(new ActionListener() {
-             @Override
-             public void actionPerformed(ActionEvent e) {
-                 if(testConnection()){
-                     optionPane.setValue(new Integer(JOptionPane.OK_OPTION));
-                     setVisible(false);
-                 }else{
-                     optionPane.setIcon(FTPDialog.failIcon);
-                     //The background of components changes back to default, so we have to set it back to primaryColor
-                     UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
-                 }
-
+         okButton.addActionListener(e -> {
+             if(testConnection()){
+                 optionPane.setValue(new Integer(JOptionPane.OK_OPTION));
+                 setVisible(false);
+             }else{
+                 optionPane.setIcon(FTPDialog.failIcon);
+                 //The background of components changes back to default, so we have to set it back to primaryColor
+                 UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
              }
+
          });
-         testButton.addActionListener(new ActionListener() {
-             @Override
-             public void actionPerformed(ActionEvent e) {
-                 if(testConnection()){
-                     optionPane.setIcon(FTPDialog.successIcon);
-                     UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
-                 }else{
-                     optionPane.setIcon(FTPDialog.failIcon);
-                     UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
-                 }
+         testButton.addActionListener(e -> {
+             if(testConnection()){
+                 optionPane.setIcon(FTPDialog.successIcon);
+                 UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
+             }else{
+                 optionPane.setIcon(FTPDialog.failIcon);
+                 UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
              }
          });
 
@@ -215,22 +208,19 @@ public class FTPDialog extends JDialog {
 
     /**
      * Validates the user entered ftp/sftp/ftps/ftpes url
-     * @param url
-     * @return
+     * @param url The ftp/sftp/ftps/ftpes url
+     * @return The validness of the url
      */
     private boolean validateUrl(String url){
-        if(urlValidator.isValid(url))
-            return true;
-        else
-            return false;
+        return urlValidator.isValid(url);
     }
 
     /**
      * Test's the connection to the server
-     * @return
+     * @return The success of the test
      */
     private boolean testConnection(){
-        if(RegionFTPClient.testClient(ftpOptions))
+        if(RegionFTPClient.testConnection(ftpOptions))
             return true;
         else
             return false;

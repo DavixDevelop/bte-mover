@@ -146,9 +146,9 @@ public class Mover_Model implements IMoverModel {
     //Queue to save regions to be uploaded
     private ConcurrentLinkedQueue<Region> uploadQueue = new ConcurrentLinkedQueue<>();
 
-    private String tempFolder;
+    /*private String tempFolder;
     private String temp2dFolder;
-    private String temp3dFolder;
+    private String temp3dFolder;*/
 
     private TimerModel timerModel;
     public TimerModel getTimerModel() {
@@ -591,11 +591,11 @@ public class Mover_Model implements IMoverModel {
         observer.previewTransfers((enableTransfer) ? 1 : 0);
     }
 
-    /**
+    /*
      * Creates a temporary folder and creates the region2d and region3d folder inside of it.
      * It also adds shutdown hook to the runtime, to delete the temporary folder after the program
      * shuts down
-     */
+
     public void setupTempFolder(){
         try{
             tempFolder = Files.createTempDirectory("bte_mover").toString().replace("\\","/");
@@ -618,22 +618,22 @@ public class Mover_Model implements IMoverModel {
         }
 
     }
+     */
 
+    /*
     private boolean uploadRunnableStarted;
     private boolean uploadQueueHasItems;
     private boolean downloadQueueHasItems;
     private int regionsDownloaded;
 
-    /**
-     * The main method that downloads the region from it download query and uploads it to the target server,
+     *
+     * The old main method that downloads the region from it download query and uploads it to the target server,
      * effectively transferring it, but note that it doesn't delete it from the source server.
      * Both download and upload are done in two separate threads. While it's transferring the region, it also
      * simultaneously updates the model query of the JList and notifies the model observer of each change/progress
      * transfer progress
      *
-     */
-    @Override
-    public void transferRegions() {
+    public void old_transferRegions() {
         timerModel = new TimerModel(getTransferRegionsCount(), getTransferRegions().values().stream().mapToInt(Region::getRegion3dCount).sum());
         uploadRunnableStarted = false;
         uploadQueueHasItems = false;
@@ -720,7 +720,7 @@ public class Mover_Model implements IMoverModel {
                                                 observer.setQueryItemIcon(uploadRegion, 2);
                                                 try{
                                                     if(targetFTP.upload2DRegion(uploadRegion2DFile, uploadRegion)){
-                                                        //Update ETA label
+                                                        //Update ETR label
                                                         observer.updateProgress(-1);
 
                                                         Thread.sleep(200);
@@ -730,7 +730,7 @@ public class Mover_Model implements IMoverModel {
                                                         for(int i = 0; i < upload3DList.size(); i++){
                                                             String uploadRegion3DFile = tempRegion3DFolder + "/" + (upload3DList.get(i) + ".3dr");
                                                             if(targetFTP.upload3DRegion(uploadRegion3DFile, upload3DList.get(i))){
-                                                                //Update ETA label
+                                                                //Update ETR label
                                                                 observer.updateProgress(-2);
 
                                                                 Thread.sleep(200);
@@ -802,5 +802,139 @@ public class Mover_Model implements IMoverModel {
 
         Thread downloadThread = new Thread(downloadRunnable);
         downloadThread.start();
+    }
+     */
+
+    private int threadCount = 2;
+    public int getThreadCount() {
+        return threadCount;
+    }
+
+    private int threadsDone = 0;
+    public int IncreaseThreadsDone(){
+        threadsDone++;
+        return threadsDone;
+    }
+
+    /**
+     * The new main method that get's the region from it download query and uploads it's to the target server,
+     * effectively transferring it, but note that it doesn't delete it from the source server.
+     * Both download and upload are done in one the same thread, but multiple threads can be run at one. While it's transferring the region, it also
+     * simultaneously updates the model query of the JList and notifies the model observer of each change/progress
+     * transfer progress
+     *
+     */
+    @Override
+    public void transferRegions() {
+        timerModel = new TimerModel(getTransferRegionsCount(), getTransferRegions().values().stream().mapToInt(Region::getRegion3dCount).sum());
+        threadsDone = 0;
+        for( int i = 0; i < threadCount; i++){
+            Runnable getPutRunnable = () -> {
+                RegionFTPClient sourceFTPClient = new RegionFTPClient(getSourceFTP());
+                RegionFTPClient targetFTPClient = new RegionFTPClient(getTargetFTP());
+
+                try {
+                    if (sourceFTPClient.open()){
+                        if(targetFTPClient.open()){
+                            while(!downloadQueue.isEmpty()){
+                                Region region = downloadQueue.poll();
+
+                                try{
+                                    //Set icon in query item to downloading
+                                    observer.setQueryItemIcon(region, 1);
+
+                                    //Get the region 2d content
+                                    byte[] regionContent = sourceFTPClient.get2DRegion(region);
+                                    if(regionContent != null){
+                                        //Set icon in query item to uploading
+                                        observer.setQueryItemIcon(region,2);
+
+                                        //Put the region 2d content int the the target remote 2d region
+                                        if(targetFTPClient.put2DRegion(regionContent, region)){
+                                            //Increase region2d count and update ETR
+                                            observer.updateProgress(-1);
+
+                                            List<String> region3DList = region.getRegion3d();
+                                            for(int d = 0; d < region3DList.size(); d++){
+                                                //Set icon in query item to downloading
+                                                observer.setQueryItemIcon(region, 1);
+
+                                                //Get the region3d content
+                                                regionContent = sourceFTPClient.get3DRegion(region3DList.get(d));
+                                                if(regionContent != null){
+                                                    //Set icon in query item to uploading
+                                                    observer.setQueryItemIcon(region,2);
+
+                                                    //Put the region3d content in the target remote 3d region
+                                                    if(targetFTPClient.put3DRegion(regionContent, region3DList.get(d))){
+                                                        //Increase region3d count and update ETR
+                                                        observer.updateProgress(-2);
+
+                                                        //Decrease the 3d region count in the query item
+                                                        observer.setQueryItemCount(region, region3DList.size() - d - 1 );
+
+                                                    }
+
+                                                    Thread.sleep(200);
+                                                }
+                                            }
+
+                                            //Set icon in query item to done
+                                            observer.setQueryItemIcon(region, 3);
+
+                                            //Update transfer & shared region layer
+                                            moveTransferRegionToSharedRegionLayer(region);
+
+                                            //Update legend
+                                            observer.updateTransferCounts();
+
+                                            //Make sure to keep the connection to both servers alive
+                                            sourceFTPClient.sendNoOpCommand();
+                                            targetFTPClient.sendNoOpCommand();
+
+                                        }else{
+                                            //Set icon in query item to X (failed)
+                                            observer.setQueryItemIcon(region, 4);
+                                        }
+
+                                    }else {
+                                        //Set icon in query item to X (failed)
+                                        observer.setQueryItemIcon(region, 4);
+                                    }
+                                }catch (Exception ex){
+                                    LogUtils.log(ex);
+                                    //Set icon in query item to X (failed)
+                                    observer.setQueryItemIcon(region, 4);
+                                }
+                            }
+
+                            //Close both connections to server once the download queue is empty
+                            sourceFTPClient.close();
+                            targetFTPClient.close();
+
+                            //Notify observer of progress done
+                            observer.updateProgress(-3);
+                        }else
+                            observer.showMessage(new String[]{"Could not login to Taeger " + getTargetFTP().getProtocol().toUpperCase() + " Server", "Check connection or login info"});
+                    }else{
+                        observer.showMessage(new String[]{"Could not login to Source " + getSourceFTP().getProtocol().toUpperCase() + " Server", "Check connection or login info"});
+                    }
+                }catch (Exception ex){
+                    LogUtils.log(ex);
+                    observer.showMessage(new String[]{"Error while transferring", ex.toString()});
+                }
+
+                observer.transferDone();;
+            };
+
+            Thread getPutThread = new Thread(getPutRunnable);
+            getPutThread.start();
+
+            if(threadCount > 1)
+                try{
+                    //Start another thread with a delay
+                    Thread.sleep(20);
+                }catch (Exception ex){}
+        }
     }
 }
