@@ -98,8 +98,8 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
     }
 
     /**
-     * Get's and hashtable of regions from the sftp server
-     * @return
+     *
+     * @return Get's and hashtable of regions from the sftp server
      */
     @Override
     public Hashtable<String, Region> getRegions() {
@@ -165,7 +165,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
      */
     @Override
     public boolean download2DRegion(Region region, String targetFile) {
-        boolean result = false;
+        boolean result;
         try{
             FileOutputStream outputStream = new FileOutputStream(targetFile);
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
@@ -193,7 +193,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
      */
     @Override
     public boolean download3DRegion(String region3d, String targetFile) {
-        boolean result = false;
+        boolean result;
         try{
             FileOutputStream outputStream = new FileOutputStream(targetFile);
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
@@ -221,10 +221,10 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
      */
     @Override
     public boolean upload2DRegion(String region2DPath, Region region) {
-        boolean result = false;
+        boolean result;
         try{
             FileInputStream inputStream = new FileInputStream(region2DPath);
-            String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2DPath/" + (region.getX() + "." + region.getZ() + ".2dr");
+            String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
             channelSftp.put(inputStream, target);
 
@@ -240,14 +240,14 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
     }
 
     /**
-     * Uploads the 2d region file from the supplied region2DPath
+     * Uploads the 3d region file from the supplied region3DPath
      * @param region3DPath The path to 3d region file to upload
      * @param region3DName The name of 3d region to upload
      * @return The success of the upload
      */
     @Override
     public boolean upload3DRegion(String region3DPath, String region3DName) {
-        boolean result = false;
+        boolean result;
         try{
             FileInputStream inputStream = new FileInputStream(region3DPath);
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";

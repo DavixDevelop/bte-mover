@@ -33,10 +33,10 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
     private static TrustManager[] TRUST_MANAGERS = new TrustManager[]{
             new X509TrustManager() {
                 @Override
-                public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException { }
+                public void checkClientTrusted(X509Certificate[] x509Certificates, String s) { }
 
                 @Override
-                public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException { }
+                public void checkServerTrusted(X509Certificate[] x509Certificates, String s) { }
 
                 @Override
                 public X509Certificate[] getAcceptedIssuers() {
@@ -52,7 +52,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
 
         if(Objects.equals(ftpOptions.getProtocol(), "ftps") || Objects.equals(ftpOptions.getProtocol(), "ftpes")){
-            SSLContext sslContext = null;
+            SSLContext sslContext;
             try{
                 sslContext = SSLContext.getInstance("SSL");
                 sslContext.init(null, TRUST_MANAGERS, new SecureRandom());
@@ -67,6 +67,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
             }catch (Exception ex){
                 LogUtils.log(ex);
+                sslContext = null;
             }
         }
     }
@@ -80,10 +81,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
     public boolean open() throws Exception {
         try{
             String[] message = connect(ftpOptions.getServer(), ftpOptions.getPort());
-            if(message.length > 0){
-
-            }
-
             login(ftpOptions.getUser(), ftpOptions.getPassword());
             return true;
 
@@ -103,8 +100,8 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
     }
 
     /**
-     * Get's and hashtable of regions from the ftp server
-     * @return
+     *
+     * @return Get's and hashtable of regions from the ftp server
      */
     @Override
     public Hashtable<String, Region> getRegions() {
@@ -126,7 +123,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             close();
 
             //Store regions in a temp hashtable to quickly add 3d regions later
-            Hashtable<String, Region> regions = new Hashtable<String, Region>();
+            Hashtable<String, Region> regions = new Hashtable<>();
             for (String file:
                     files) {
                 Matcher matcher = region2dValidator.matcher(file);
@@ -280,7 +277,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
         boolean[] result = {false};
         try{
             FileInputStream inputStream = new FileInputStream(region2DPath);
-            String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2DPath/" + (region.getX() + "." + region.getZ() + ".2dr");
+            String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
             setType(FTPClient.TYPE_BINARY);
 
@@ -320,7 +317,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
     }
 
     /**
-     * Uploads the 2d region file from the supplied region2DPath
+     * Uploads the 3d region file from the supplied region3DPath
      * @param region3DPath The path to 3d region file to upload
      * @param region3DName The name of 3d region to upload
      * @return The success of the upload

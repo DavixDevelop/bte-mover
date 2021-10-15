@@ -14,7 +14,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 mainClassName = 'com.davixdevelop.btemover.Mover_Main'
 
 group 'com.davixdevelop'
-version '1.0'
+version '1.0-' + ('git rev-list --count HEAD'.execute().text.trim())
 
 repositories {
     maven {
@@ -47,9 +47,15 @@ repositories {
         url = "https://repo.spongepowered.org/maven/"
     }
 
+
     maven {
         name = "OSGeo"
         url = "https://repo.osgeo.org/repository/release/"
+    }
+
+    maven {
+        name = "Boundless"
+        url = "https://repo.boundlessgeo.com/main/"
     }
 }
 
@@ -61,10 +67,12 @@ dependencies {
     compile 'com.github.asbachb:ftp4j:master-SNAPSHOT'
     compile 'com.jcraft:jsch:0.1.55'
     compile 'commons-validator:commons-validator:1.7'
+    compile 'org.geotools:gt-main:25.2'
+    compile 'org.geotools:gt-shapefile:25.2'
+    //compile 'org.geotools:gt-opengis:25.2'
     compile 'org.geotools:gt-swing:25.2'
     compile 'org.geotools:gt-tile-client:25.2'
     compile 'org.geotools:gt-epsg-hsql:25.2'
-    compile 'org.geotools:gt-shapefile:25.2'
 }
 
 shadowJar{
@@ -73,6 +81,8 @@ shadowJar{
     manifest{
         attributes 'Main-Class' : 'com.davixdevelop.btemover.Mover_Main'
     }
+
+    mergeServiceFiles()
 }
 
 test {

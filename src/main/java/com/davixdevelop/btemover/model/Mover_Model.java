@@ -31,7 +31,6 @@ import javax.swing.*;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -58,7 +57,7 @@ public class Mover_Model implements IMoverModel {
         shapefilePath = _shapefilePath;
     }
 
-    private FTPOptions SourceFTP;
+    private FTPOptions SourceFTP = new FTPOptions("ftp","192.168.0.26",2121,"Tiled","david","hard");
     public FTPOptions getSourceFTP() {
         return SourceFTP;
     }
@@ -66,7 +65,7 @@ public class Mover_Model implements IMoverModel {
         SourceFTP = _sourceFTP;
     }
 
-    private FTPOptions TargetFTP;
+    private FTPOptions TargetFTP = new FTPOptions("sftp","192.168.0.26",2222,"","david","hard");
     public FTPOptions getTargetFTP() {
         return TargetFTP;
     }
@@ -147,9 +146,9 @@ public class Mover_Model implements IMoverModel {
     //Queue to save regions to be uploaded
     private ConcurrentLinkedQueue<Region> uploadQueue = new ConcurrentLinkedQueue<>();
 
-    private Path tempFolder;
-    private Path temp2dFolder;
-    private Path temp3dFolder;
+    private String tempFolder;
+    private String temp2dFolder;
+    private String temp3dFolder;
 
     private TimerModel timerModel;
     public TimerModel getTimerModel() {
@@ -299,8 +298,7 @@ public class Mover_Model implements IMoverModel {
      */
     private Hashtable<String,Region> getRegionsList(FTPOptions ftpOptions){
         RegionFTPClient client = new RegionFTPClient(ftpOptions);
-        Hashtable<String,Region> regions = client.getRegions();
-        return regions;
+        return  client.getRegions();
     }
 
     /**
@@ -334,11 +332,7 @@ public class Mover_Model implements IMoverModel {
      */
     public boolean polygonIntersectsWithShapefile(Polygon polygon){
         //Check if the region polygon intersects with the shapefile geometry
-        if(shapefileGeometry.intersects(polygon)){
-            return true;
-        }
-
-        return false;
+        return shapefileGeometry.intersects(polygon);
     }
 
     /**
@@ -347,8 +341,8 @@ public class Mover_Model implements IMoverModel {
     public void updateQuery(){
         queryModel.clear();
         List<String> transferRegionKeys = new ArrayList<>(transferRegions.keySet());
-        for(int i = 0; i < transferRegionKeys.size(); i++){
-            Region region = transferRegions.get(transferRegionKeys.get(i));
+        for (String transferRegionKey : transferRegionKeys) {
+            Region region = transferRegions.get(transferRegionKey);
             queryModel.addElement(new QueriedRegion(region.getName(), region.getRegion3d().size(), 0));
         }
     }
@@ -377,16 +371,18 @@ public class Mover_Model implements IMoverModel {
 
         //Get transfer feature with the id of the region name
         Optional<SimpleFeature> transferOptionalFeature = transferFeatures.stream().filter(p -> p.getID().equals(region.getName())).findFirst();
-        SimpleFeature transferFeature = transferOptionalFeature.get();
+        if(transferOptionalFeature.isPresent()) {
+            SimpleFeature transferFeature = transferOptionalFeature.get();
 
-        //Remove feature with the same id as the region name
-        transferFeatures.removeIf(f -> f.getID() == region.getName());
+            //Remove feature with the same id as the region name
+            transferFeatures.removeIf(f -> Objects.equals(f.getID(), region.getName()));
 
-        //Add transfer feature with the id of the region name to the shared layer
-        sharedFeatures.add(transferFeature);
+            //Add transfer feature with the id of the region name to the shared layer
+            sharedFeatures.add(transferFeature);
 
-        transferRegionsLayer.update();
-        sharedRegionsLayer.update();
+            transferRegionsLayer.update();
+            sharedRegionsLayer.update();
+        }
     }
 
     /**
@@ -470,10 +466,7 @@ public class Mover_Model implements IMoverModel {
 
         if(shapefileLayerStatus == 1){
             mapContent = new MapContent();
-            if(osmLayerToggled)
-                osmTileLayer.setVisible(true);
-            else
-                osmTileLayer.setVisible(false);
+            osmTileLayer.setVisible(osmLayerToggled);
             mapContent.addLayer(osmTileLayer);
             mapContent.addLayer(shapefileLayer);
             mapContent.addLayer(targetRegionsLayer);
@@ -556,8 +549,8 @@ public class Mover_Model implements IMoverModel {
                     }
 
                     //Remove region from source and target layer to prevent overlay
-                    sourceFeatures.removeIf(p -> p.getID() == entry.getKey());
-                    targetFeatures.removeIf(p -> p.getID() == entry.getKey());
+                    sourceFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
+                    targetFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
                 }else{
                     Region sourceRegion = entry.getValue();
                     RectanglePoint[] rectanglePoints = sourceRegion.getPoints();
@@ -576,8 +569,8 @@ public class Mover_Model implements IMoverModel {
                         transferRegions.put(entry.getKey(), sourceRegion);
 
                         //Remove region from source and target layer to prevent overlay
-                        sourceFeatures.removeIf(p -> p.getID() == entry.getKey());
-                        targetFeatures.removeIf(p -> p.getID() == entry.getKey());
+                        sourceFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
+                        targetFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
                     }
                 }
             }
@@ -605,20 +598,19 @@ public class Mover_Model implements IMoverModel {
      */
     public void setupTempFolder(){
         try{
-            tempFolder = Files.createTempDirectory("bte_mover");
-            temp2dFolder = Files.createDirectory(Paths.get(tempFolder.toString(), "region2d"));
-            temp3dFolder = Files.createDirectory(Paths.get(tempFolder.toString(), "region3d"));
+            tempFolder = Files.createTempDirectory("bte_mover").toString().replace("\\","/");
+            temp2dFolder = tempFolder + "/region2d";
+            temp3dFolder = tempFolder + "/region3d";
+            Files.createDirectory(Paths.get(temp2dFolder));
+            Files.createDirectory(Paths.get(temp3dFolder));
 
-            Runtime.getRuntime().addShutdownHook(new Thread(){
-                @Override
-                public void run() {
-                    try{
-                        FileUtils.deleteDirectory(new File(tempFolder.toString()));
-                    }catch (Exception ex){
-                        LogUtils.log(ex);
-                    }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try{
+                    FileUtils.deleteDirectory(new File(tempFolder));
+                }catch (Exception ex){
+                    LogUtils.log(ex);
                 }
-            });
+            }));
 
         }catch (Exception ex){
             LogUtils.log(ex);
@@ -648,168 +640,162 @@ public class Mover_Model implements IMoverModel {
         downloadQueueHasItems = false;
         regionsDownloaded = 0;
 
-        Runnable downloadRunnable = new Runnable() {
-            @Override
-            public void run() {
+        Runnable downloadRunnable = () -> {
 
-                RegionFTPClient ftpClient = new RegionFTPClient(getSourceFTP());
+            RegionFTPClient ftpClient = new RegionFTPClient(getSourceFTP());
 
-                try{
-                    if(ftpClient.open()){
+            try{
+                if(ftpClient.open()){
 
-                        String tempRegion3DFolder = temp3dFolder.toString();
-                        String tempRegion2DFolder = temp2dFolder.toString();
+                    String tempRegion3DFolder = temp3dFolder;
+                    String tempRegion2DFolder = temp2dFolder;
 
-                        while(!downloadQueue.isEmpty()){
-                            downloadQueueHasItems = true;
-                            Region region = downloadQueue.poll();
+                    while(!downloadQueue.isEmpty()){
+                        downloadQueueHasItems = true;
+                        Region region = downloadQueue.poll();
 
-                            String region2DFile = Paths.get(tempRegion2DFolder, region.getX() + "." + region.getZ() + ".2dr").toString();
+                        String region2DFile = tempRegion2DFolder + "/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-                            try{
-                                //Set icon in query item to downloading
-                                observer.setQueryItemIcon(region, 1);
-                                //Thread.sleep(100);
+                        try{
+                            //Set icon in query item to downloading
+                            observer.setQueryItemIcon(region, 1);
+                            //Thread.sleep(100);
 
 
-                                //Download region file to temp region2d folder
-                                if(ftpClient.download2DRegion(region, region2DFile)){
-                                    if(!uploadRunnableStarted)
-                                        observer.updateProgress(++regionsDownloaded);
+                            //Download region file to temp region2d folder
+                            if(ftpClient.download2DRegion(region, region2DFile)){
+                                if(!uploadRunnableStarted)
+                                    observer.updateProgress(++regionsDownloaded);
 
-                                    Thread.sleep(200);
-                                    ftpClient.sendNoOpCommand();
+                                Thread.sleep(200);
+                                ftpClient.sendNoOpCommand();
 
-                                    //Download the region3d files to the temp region3d folder
-                                    List<String> region3DList = region.getRegion3d();
-                                    for(int i = 0; i < region3DList.size(); i++){
-                                        String region3DFile = Paths.get(tempRegion3DFolder,region3DList.get(i) + ".3dr").toString();
-                                        if(ftpClient.download3DRegion(region3DList.get(i), region3DFile)){
-                                            //Decrease the 3d region count in the query item
-                                            observer.setQueryItemCount(region, region3DList.size() - i - 1);
-                                            ftpClient.sendNoOpCommand();
+                                //Download the region3d files to the temp region3d folder
+                                List<String> region3DList = region.getRegion3d();
+                                for(int i = 0; i < region3DList.size(); i++){
+                                    String region3DFile = tempRegion3DFolder + "/" + (region3DList.get(i) + ".3dr");
+                                    if(ftpClient.download3DRegion(region3DList.get(i), region3DFile)){
+                                        //Decrease the 3d region count in the query item
+                                        observer.setQueryItemCount(region, region3DList.size() - i - 1);
+                                        ftpClient.sendNoOpCommand();
 
-                                            if(!uploadRunnableStarted)
-                                                observer.updateProgress(++regionsDownloaded);
+                                        if(!uploadRunnableStarted)
+                                            observer.updateProgress(++regionsDownloaded);
 
-                                            Thread.sleep(200);
-                                        }
+                                        Thread.sleep(200);
                                     }
-                                    //Add downloaded region to upload queue
-                                    uploadQueue.add(region);
-                                    uploadQueueHasItems = true;
-
-
-                                    ftpClient.sendNoOpCommand();
-                                }else{
-                                    //Set icon in query item to X (failed)
-                                    observer.setQueryItemIcon(region, 4);
                                 }
-                            }catch (Exception ex){
+                                //Add downloaded region to upload queue
+                                uploadQueue.add(region);
+                                uploadQueueHasItems = true;
+
+
+                                ftpClient.sendNoOpCommand();
+                            }else{
                                 //Set icon in query item to X (failed)
-                                LogUtils.log(ex);
                                 observer.setQueryItemIcon(region, 4);
                             }
+                        }catch (Exception ex){
+                            //Set icon in query item to X (failed)
+                            LogUtils.log(ex);
+                            observer.setQueryItemIcon(region, 4);
+                        }
 
-                            //Start upload thread if it hasn't started yet and if the uploadQueue isn't empty
-                            if(!uploadRunnableStarted && uploadQueueHasItems){
-                                uploadRunnableStarted = true;
-                                Runnable uploadRunnable = new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        RegionFTPClient targetFTP = new RegionFTPClient(getTargetFTP());
+                        //Start upload thread if it hasn't started yet and if the uploadQueue isn't empty
+                        if(!uploadRunnableStarted && uploadQueueHasItems){
+                            uploadRunnableStarted = true;
+                            Runnable uploadRunnable = () -> {
+                                RegionFTPClient targetFTP = new RegionFTPClient(getTargetFTP());
 
-                                        try{
-                                            if(targetFTP.open()){
-                                                //While downloadQueue has items run while loop, and if it doesn't run loop as long as uploadQueue isn't empty
-                                                while ((downloadQueueHasItems) ? true : !uploadQueue.isEmpty()){
-                                                    targetFTP.sendNoOpCommand();
-                                                    if(!uploadQueue.isEmpty()){
-                                                        Region uploadRegion = uploadQueue.poll();
-                                                        String uploadRegion2DFile = tempRegion2DFolder + "/" + ( uploadRegion.getX() + "." + uploadRegion.getZ() + ".2dr");
+                                try{
+                                    if(targetFTP.open()){
+                                        //While downloadQueue has items run while loop, and if it doesn't run loop as long as uploadQueue isn't empty
+                                        while (downloadQueueHasItems || !uploadQueue.isEmpty()){
+                                            targetFTP.sendNoOpCommand();
+                                            if(!uploadQueue.isEmpty()){
+                                                Region uploadRegion = uploadQueue.poll();
+                                                String uploadRegion2DFile = tempRegion2DFolder + "/" + (uploadRegion.getName() + ".2dr");
 
-                                                        //Set icon in query item to upload
-                                                        observer.setQueryItemIcon(uploadRegion, 2);
-                                                        try{
-                                                            if(targetFTP.upload2DRegion(uploadRegion2DFile, uploadRegion)){
+                                                //Set icon in query item to upload
+                                                observer.setQueryItemIcon(uploadRegion, 2);
+                                                try{
+                                                    if(targetFTP.upload2DRegion(uploadRegion2DFile, uploadRegion)){
+                                                        //Update ETA label
+                                                        observer.updateProgress(-1);
+
+                                                        Thread.sleep(200);
+                                                        targetFTP.sendNoOpCommand();
+
+                                                        List<String> upload3DList = uploadRegion.getRegion3d();
+                                                        for(int i = 0; i < upload3DList.size(); i++){
+                                                            String uploadRegion3DFile = tempRegion3DFolder + "/" + (upload3DList.get(i) + ".3dr");
+                                                            if(targetFTP.upload3DRegion(uploadRegion3DFile, upload3DList.get(i))){
                                                                 //Update ETA label
-                                                                observer.updateProgress(-1);
+                                                                observer.updateProgress(-2);
 
                                                                 Thread.sleep(200);
                                                                 targetFTP.sendNoOpCommand();
 
-                                                                List<String> upload3DList = uploadRegion.getRegion3d();
-                                                                for(int i = 0; i < upload3DList.size(); i++){
-                                                                    String uploadRegion3DFile = tempRegion3DFolder + "/" + (upload3DList.get(i) + ".3dr");
-                                                                    if(targetFTP.upload3DRegion(uploadRegion3DFile, upload3DList.get(i))){
-                                                                        //Update ETA label
-                                                                        observer.updateProgress(-2);
+                                                                //Increase the 3d region count in the query item
+                                                                observer.setQueryItemCount(uploadRegion, i + 1);
 
-                                                                        Thread.sleep(200);
-                                                                        targetFTP.sendNoOpCommand();
-
-                                                                        //Increase the 3d region count in the query item
-                                                                        observer.setQueryItemCount(uploadRegion, i + 1);
-
-                                                                        //Delete the temp region3d file
-                                                                        Files.delete(Paths.get(uploadRegion3DFile));
-                                                                    }
-                                                                }
-
-                                                                //Set icon in query item to done
-                                                                observer.setQueryItemIcon(uploadRegion, 3);
-
-                                                                //Delete the temp region2d file
-                                                                Files.delete(Paths.get(uploadRegion2DFile));
-
-                                                                //Update transfer & shared region layer
-                                                                moveTransferRegionToSharedRegionLayer(uploadRegion);
-
-                                                                //Update legend
-                                                                observer.updateTransferCounts();
-
-                                                                targetFTP.sendNoOpCommand();
-
-                                                            }else {
-                                                                //Set icon in query item to X (failed)
-                                                                observer.setQueryItemIcon(uploadRegion, 4);
+                                                                //Delete the temp region3d file
+                                                                Files.delete(Paths.get(uploadRegion3DFile));
                                                             }
-                                                        }catch (Exception ex){
-                                                            //Set icon in query item to X (failed)
-                                                            LogUtils.log(ex);
-                                                            observer.setQueryItemIcon(uploadRegion, 4);
                                                         }
 
-                                                    }
-                                                    else
-                                                        Thread.sleep(200);
-                                                }
-                                                targetFTP.close();
-                                            }else{
-                                                observer.showMessage(new String[]{"Could not login to Target FTP", "Check connection or login info"});
-                                            }
-                                        }catch (Exception ex){
-                                            LogUtils.log(ex);
-                                            observer.showMessage(new String[]{"Error while uploading", ex.toString()});
-                                        }
-                                    }
-                                };
-                                Thread uploadThread = new Thread(uploadRunnable);
-                                uploadThread.start();
-                            }
-                        }
-                        downloadQueueHasItems = false;
-                        ftpClient.close();
-                    }else{
-                        observer.showMessage(new String[]{"Could not login to Source FTP", "Check connection or login info"});
-                    }
-                }catch (Exception ex){
-                    LogUtils.log(ex);
-                    observer.showMessage(new String[]{"Error while downloading", ex.toString()});
-                }
+                                                        //Set icon in query item to done
+                                                        observer.setQueryItemIcon(uploadRegion, 3);
 
-                observer.transferDone();
+                                                        //Delete the temp region2d file
+                                                        Files.delete(Paths.get(uploadRegion2DFile));
+
+                                                        //Update transfer & shared region layer
+                                                        moveTransferRegionToSharedRegionLayer(uploadRegion);
+
+                                                        //Update legend
+                                                        observer.updateTransferCounts();
+
+                                                        targetFTP.sendNoOpCommand();
+
+                                                    }else {
+                                                        //Set icon in query item to X (failed)
+                                                        observer.setQueryItemIcon(uploadRegion, 4);
+                                                    }
+                                                }catch (Exception ex){
+                                                    //Set icon in query item to X (failed)
+                                                    LogUtils.log(ex);
+                                                    observer.setQueryItemIcon(uploadRegion, 4);
+                                                }
+
+                                            }
+                                            else
+                                                Thread.sleep(200);
+                                        }
+                                        targetFTP.close();
+                                    }else{
+                                        observer.showMessage(new String[]{"Could not login to Target FTP", "Check connection or login info"});
+                                    }
+                                }catch (Exception ex){
+                                    LogUtils.log(ex);
+                                    observer.showMessage(new String[]{"Error while uploading", ex.toString()});
+                                }
+                            };
+                            Thread uploadThread = new Thread(uploadRunnable);
+                            uploadThread.start();
+                        }
+                    }
+                    downloadQueueHasItems = false;
+                    ftpClient.close();
+                }else{
+                    observer.showMessage(new String[]{"Could not login to Source FTP", "Check connection or login info"});
+                }
+            }catch (Exception ex){
+                LogUtils.log(ex);
+                observer.showMessage(new String[]{"Error while downloading", ex.toString()});
             }
+
+            observer.transferDone();
         };
 
         Thread downloadThread = new Thread(downloadRunnable);
