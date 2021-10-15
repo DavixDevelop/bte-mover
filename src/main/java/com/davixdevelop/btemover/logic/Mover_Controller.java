@@ -364,6 +364,7 @@ public class Mover_Controller implements IMoverModelObserver {
      * @param status: >0 - Manual progress
      *                -1 - Increase region2d progress
      *                -2 - Increase region3d progress
+     *                -3 - Done
      */
     @Override
     public void updateProgress(Integer status) {
@@ -373,33 +374,49 @@ public class Mover_Controller implements IMoverModelObserver {
         } else if (status == -2) {
             model.getTimerModel().Increase3DRegions();
         }
-
-        //long millis = 0;
-        long second = 0;
-        long minute = 0;
-        long hour = 0;
+        else if(status == -3){
         long currentTime = System.currentTimeMillis();
-
-        int completeRegions = (status == -1 || status == -2) ? model.getTimerModel().getProgress2DRegions() + model.getTimerModel().getProgress3DRegions() : status;
-
-        if(completeRegions == model.getTimerModel().getTotalRegions()){
-            String wat = "0";
-        }
-
         long elapsedTime = currentTime - model.getTimerModel().getStartTime();
-        long progressTime = elapsedTime * model.getTimerModel().getTotalRegions() / completeRegions;
-        long eta = progressTime - elapsedTime;
+        long second = (elapsedTime / 1000) % 60;
+        long minute = (elapsedTime / (1000 * 60)) % 60;
+        long hour = (elapsedTime / (1000 * 60 * 60)) % 24;
 
-        //millis = eta % 1000;
-        second = (eta / 1000) % 60;
-        minute = (eta / (1000 * 60)) % 60;
-        hour = (eta / (1000 * 60 * 60)) % 24;
-
-        view.setProgressText(String.format("ETA: %02d:%02d:%02d Reg2D: %d/%d Reg3D: %d/%d", hour, minute, second,
+        view.setProgressText(String.format("DONE IN: %02d:%02d:%02d Reg2D: %d/%d Reg3D: %d/%d", hour, minute, second,
                 model.getTimerModel().getProgress2DRegions(),
                 model.getTimerModel().getTotal2DRegions(),
                 model.getTimerModel().getProgress3DRegions(),
                 model.getTimerModel().getTotal3DRegions()));
+
+        return;
+    }
+
+
+    //long millis = 0;
+    long second = 0;
+    long minute = 0;
+    long hour = 0;
+    long currentTime = System.currentTimeMillis();
+
+    int completeRegions = (status == -1 || status == -2) ? model.getTimerModel().getProgress2DRegions() + model.getTimerModel().getProgress3DRegions() : status;
+
+    if(completeRegions == model.getTimerModel().getTotalRegions()){
+        String wat = "0";
+    }
+
+    long elapsedTime = currentTime - model.getTimerModel().getStartTime();
+    long progressTime = elapsedTime * model.getTimerModel().getTotalRegions() / completeRegions;
+    long eta = progressTime - elapsedTime;
+
+    //millis = eta % 1000;
+    second = (eta / 1000) % 60;
+    minute = (eta / (1000 * 60)) % 60;
+    hour = (eta / (1000 * 60 * 60)) % 24;
+
+    view.setProgressText(String.format("ETR: %02d:%02d:%02d Reg2D: %d/%d Reg3D: %d/%d", hour, minute, second,
+            model.getTimerModel().getProgress2DRegions(),
+            model.getTimerModel().getTotal2DRegions(),
+            model.getTimerModel().getProgress3DRegions(),
+            model.getTimerModel().getTotal3DRegions()));
     }
 
     @Override

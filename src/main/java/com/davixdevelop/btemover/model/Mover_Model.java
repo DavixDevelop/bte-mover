@@ -773,6 +773,10 @@ public class Mover_Model implements IMoverModel {
                                                 Thread.sleep(200);
                                         }
                                         targetFTP.close();
+
+                                        //Notify observer of progress done
+                                        observer.updateProgress(-3);
+                                        observer.transferDone();
                                     }else{
                                         observer.showMessage(new String[]{"Could not login to Target FTP", "Check connection or login info"});
                                     }
@@ -794,8 +798,6 @@ public class Mover_Model implements IMoverModel {
                 LogUtils.log(ex);
                 observer.showMessage(new String[]{"Error while downloading", ex.toString()});
             }
-
-            observer.transferDone();
         };
 
         Thread downloadThread = new Thread(downloadRunnable);
