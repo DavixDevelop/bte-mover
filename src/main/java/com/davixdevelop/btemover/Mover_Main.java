@@ -21,6 +21,11 @@ public class Mover_Main {
     public Mover_Main(){
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
+            System.out.println(com.sun.media.imageioimpl.common.PackageUtil.getVendor());
+            System.out.println(com.sun.media.imageioimpl.common.PackageUtil.getVersion());
+            System.out.println(com.sun.media.imageioimpl.common.PackageUtil.getSpecificationTitle());
+
         }catch (Exception ex){
 
         }
