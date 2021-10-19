@@ -71,6 +71,7 @@ public class PanPanel extends JLayeredPane {
         toolbar.add(expandButton, c);
 
         toggleShapefileLayer = new CircleButton(CircleButton.SHAPEFILE_ICON, true);
+        toggleShapefileLayer.setToggledOn(true);
         toggleShapefileLayer.setToolTipText("Toggle shapefile layer visibility");
         c = new GridBagConstraints();
         c.gridx = 0;

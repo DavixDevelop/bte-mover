@@ -314,7 +314,7 @@ public class Mover_View extends JFrame {
         previewPanel.add(legendPanel, c);
 
         //ETR: 00:01:15 Reg2D: 0/200 Reg3D: 0/500
-        progressLabel = new JLabel("ETR: 00:01:15 Reg2D: 0/200 Reg3D: 0/500");
+        progressLabel = new JLabel("");
         progressLabel.setFont(UIVars.RobotoRegular.deriveFont(UIVars.primaryFontSize));
         c = new GridBagConstraints();
         c.gridx = 0;
