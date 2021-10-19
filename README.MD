@@ -35,10 +35,10 @@ If any error occurs during this process a message dialog gets displayed with the
 
 Once the process finishes, and the spinner hides, that map displays the aforementioned region and automatically zoom's to the to be transferred regions, if it found any. 
 
-<br>The map enables you to zoom and pan around with a mouse. On the right side of the map is also a toolbar that enables you to export the current view to an image (the `Save icon`), display the `OSM` layer, and automatically zoom back to the transfer regions (last button).
+<br>The map enables you to zoom and pan around with a mouse. On the right side of the map is also a toolbar that enables you to export the current view to an image (the `Save icon`), display the `OSM` layer, automatically zoom back to the transfer regions (last button) and toggle the shapefile's layer visibility.
 
 
-Under the map we can also find the legend, that indicates each region type, with the count of regions in that type. 
+Under the map we can also find the legend, that indicates each region type, with the count of regions in that type. Clicking on the count toggle's the layer's visibility.
 
 On the right side we can also see the query list, that show's which regions will get transferred. The first number shows the number 3d regions in the region, following with the name of the region itself.
 

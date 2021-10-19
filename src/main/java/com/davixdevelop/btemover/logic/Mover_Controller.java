@@ -7,6 +7,8 @@ import com.davixdevelop.btemover.view.UIVars;
 import com.davixdevelop.btemover.view.components.FTPDialog;
 import com.davixdevelop.btemover.view.Mover_View;
 import com.davixdevelop.btemover.view.components.MessageDialog;
+import com.davixdevelop.btemover.view.components.NumberDialog;
+import com.davixdevelop.btemover.view.components.QuestionDialog;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.renderer.GTRenderer;
@@ -17,6 +19,8 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Objects;
@@ -35,6 +39,7 @@ public class Mover_Controller implements IMoverModelObserver {
         initListeners();
 
         view.setVisible(true);
+
     }
 
     public void initListeners(){
@@ -105,6 +110,21 @@ public class Mover_Controller implements IMoverModelObserver {
         view.initPreviewListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //Toogle layers back on visible if the shapefile layer was already added
+                if(model.getShapefileLayerStatus() == 2){
+                    view.getOnSourceCountLabel().setToggled(true);
+                    model.getSourceRegionsLayer().setVisible(true);
+
+                    view.getOnTargetCountLabel().setToggled(true);
+                    model.getTargetRegionsLayer().setVisible(true);
+
+                    view.getOnSharedCountLabel().setToggled(true);
+                    model.getSharedRegionsLayer().setVisible(true);
+
+                    view.getOnTransferCountLabel().setToggled(true);
+                    model.getTransferRegionsLayer().setVisible(true);
+                }
+
                 Runnable runnable = () -> {
                     model.previewTransfers();
             /*SwingUtilities.invokeLater(new Runnable() {
@@ -134,6 +154,11 @@ public class Mover_Controller implements IMoverModelObserver {
         view.initExportListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                int imagePixelWidth = 0;
+                while (imagePixelWidth == 0){
+                    imagePixelWidth = numberMessage("Enter width of image (pixels)", "Ex. 1920");
+                }
+
                 //Save map content to image
                 GTRenderer renderer = new StreamingRenderer();
                 renderer.setMapContent(model.getMapContent());
@@ -146,10 +171,12 @@ public class Mover_Controller implements IMoverModelObserver {
                     mapEnvelope.expandBy(0.1);
 
                     double heightWidthRatio = mapEnvelope.getSpan(1) / mapEnvelope.getSpan(0);
-                    //Create the image bounds with a fixed width of 1920 pixels
-                    int imageHeight = (int) Math.round(1920 * heightWidthRatio);
-                    rectangleImage = new Rectangle(0, 0,1920, imageHeight);
+                    //Create the image bounds with a width of imagePixelWidth
+                    int imageHeight = (int) Math.round(imagePixelWidth * heightWidthRatio);
+                    rectangleImage = new Rectangle(0, 0,imagePixelWidth, imageHeight);
 
+                    Rectangle oldScreenArea = model.getMapContent().getViewport().getScreenArea();
+                    ReferencedEnvelope oldEnvelope = model.getMapContent().getViewport().getBounds();
                     model.getMapContent().getViewport().setScreenArea(rectangleImage);
                     model.getMapContent().getViewport().setBounds(mapEnvelope);
 
@@ -181,6 +208,9 @@ public class Mover_Controller implements IMoverModelObserver {
                         ImageIO.write(bufferedImage, "png", imageFile);
                     }
 
+                    model.getMapContent().getViewport().setScreenArea(oldScreenArea);
+                    model.getMapContent().getViewport().setBounds(oldEnvelope);
+
 
                 }catch (Exception ex){
                     MessageDialog messageDialog = new MessageDialog(view, new String[]{"Error while crrating image:", ex.toString()});
@@ -202,6 +232,66 @@ public class Mover_Controller implements IMoverModelObserver {
             @Override
             public void actionPerformed(ActionEvent e) {
                 model.zoomToLayer();
+            }
+        });
+
+        //Add mouse listener to Source Count Label
+        view.getOnSourceCountLabel().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //Toggle label if there are regions present and the shapefile layer has been added
+                if(model.getSourceRegionsCount() > 0 && model.getShapefileLayerStatus() == 2) {
+                    view.getOnSourceCountLabel().setToggled(!view.getOnSourceCountLabel().isToggled());
+                    model.getSourceRegionsLayer().setVisible(view.getOnSourceCountLabel().isToggled());
+                }
+            }
+        });
+
+        //Add mouse listener to Target Count Label
+        view.getOnTargetCountLabel().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //Toggle label if there are regions present and the shapefile layer has been added
+                if(model.getTargetRegionsCount() > 0 && model.getShapefileLayerStatus() == 2) {
+                    view.getOnTargetCountLabel().setToggled(!view.getOnTargetCountLabel().isToggled());
+                    model.getTargetRegionsLayer().setVisible(view.getOnTargetCountLabel().isToggled());
+                }
+            }
+        });
+
+        //Add mouse listener to Shared Count Label
+        view.getOnSharedCountLabel().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //Toggle label if there are regions present and the shapefile layer has been added
+                if(model.getSharedRegionsCount() > 0 && model.getShapefileLayerStatus() == 2) {
+                    view.getOnSharedCountLabel().setToggled(!view.getOnSharedCountLabel().isToggled());
+                    model.getSharedRegionsLayer().setVisible(view.getOnSharedCountLabel().isToggled());
+                }
+            }
+        });
+
+        //Add mouse listener to Transfer Count Label
+        view.getOnTransferCountLabel().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //Toggle label if there are regions present and the shapefile layer has been added
+                if(model.getTransferRegionsCount() > 0 && model.getShapefileLayerStatus() == 2) {
+                    view.getOnTransferCountLabel().setToggled(!view.getOnTransferCountLabel().isToggled());
+                    model.getTransferRegionsLayer().setVisible(view.getOnTransferCountLabel().isToggled());
+                }
+            }
+        });
+
+        //Add mouse listener to Shapefile Label
+        view.getToggleShapefileLayerButton().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                //Toggle label if shapefile layer has been added
+                if(model.getShapefileLayerStatus() == 2) {
+                    view.getToggleShapefileLayerButton().setToggledOn(!view.getToggleShapefileLayerButton().isToggledOn());
+                    model.getShapefileLayer().setVisible(view.getToggleShapefileLayerButton().isToggledOn());
+                }
             }
         });
     }
@@ -296,6 +386,28 @@ public class Mover_Controller implements IMoverModelObserver {
         messageDialog.setVisible(true);
 
         int result = ((Integer) messageDialog.getOptionPane().getValue()).intValue();
+    }
+
+    @Override
+    public int questionMessage(String title, String question) {
+        QuestionDialog questionDialog = new QuestionDialog(view, title, question);
+        questionDialog.pack();
+        questionDialog.setVisible(true);
+
+        return ((Integer) questionDialog.getOptionPane().getValue()).intValue();
+    }
+
+    @Override
+    public int numberMessage(String label, String placeholder) {
+        NumberDialog numberDialog = new NumberDialog(view, label, placeholder);
+        numberDialog.pack();
+        numberDialog.setVisible(true);
+
+        int res = ((Integer) numberDialog.getOptionPane().getValue()).intValue();
+        if(res == 0)
+            return numberDialog.getNumberValue();
+        else
+            return 0;
     }
 
     @Override

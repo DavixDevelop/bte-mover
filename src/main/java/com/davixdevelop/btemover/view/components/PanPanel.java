@@ -24,6 +24,7 @@ public class PanPanel extends JLayeredPane {
     private CircleButton exportButton;
     private CircleButton osmToggleButton;
     private CircleButton expandButton;
+    private CircleButton toggleShapefileLayer;
 
     public PanPanel(Mover_Model model){
         setBackground(new Color(0,0,0,0));
@@ -66,10 +67,20 @@ public class PanPanel extends JLayeredPane {
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 2;
-        c.insets = new Insets(0, 0, 0, 0);
+        c.insets = new Insets(0, 0, 5, 0);
         toolbar.add(expandButton, c);
 
+        toggleShapefileLayer = new CircleButton(CircleButton.SHAPEFILE_ICON, true);
+        toggleShapefileLayer.setToolTipText("Toggle shapefile layer visibility");
+        c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 3;
+        c.insets = new Insets(0, 0, 0, 0);
+        toolbar.add(toggleShapefileLayer, c);
+
         toolbar.setBorder(BorderFactory.createEmptyBorder(0,0,5,5));
+
+        int circle_button_size = 17 + UIVars.circleButtonInsets[0] + UIVars.circleButtonInsets[2];
 
         jMapPane.setBounds(0, 0, getWidth(), getHeight());
         add(jMapPane, new Integer(0), 1);
@@ -107,4 +118,6 @@ public class PanPanel extends JLayeredPane {
     public CircleButton getExpandButton() {
         return expandButton;
     }
+
+    public CircleButton getToggleShapefileLayer() { return toggleShapefileLayer; }
 }

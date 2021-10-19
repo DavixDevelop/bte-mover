@@ -54,6 +54,9 @@ public class Mover_Model implements IMoverModel {
     public String getShapefilePath() {return shapefilePath;}
 
     public void setShapefilePath(String _shapefilePath) {
+        if(shapefileLayerStatus == 2 && Objects.equals(_shapefilePath, shapefilePath))
+            shapefileLayerStatus = 3;
+
         shapefilePath = _shapefilePath;
     }
 
@@ -81,7 +84,8 @@ public class Mover_Model implements IMoverModel {
      *
      * @return  0 - Shapefile layer not yet added to map content
      *          1 - Shapefile layer to be added tp map content
-     *          2 - Shapefile layer added to map content;
+     *          2 - Shapefile layer added to map content
+     *          3 - Force refresh layer (re-read the same shapefile)
      */
     public Integer getShapefileLayerStatus() {
         return shapefileLayerStatus;
@@ -113,6 +117,7 @@ public class Mover_Model implements IMoverModel {
     public Integer getTargetRegionsCount(){return targetRegions.size();}
 
     private DynamicLayer sharedRegionsLayer;
+    public DynamicLayer getSharedRegionsLayer() { return sharedRegionsLayer; }
     private DefaultFeatureCollection sharedFeatures;
     private Hashtable<String,Region> sharedRegions;
     public Hashtable<String,Region> getSharedRegions() { return sharedRegions; }
@@ -228,7 +233,7 @@ public class Mover_Model implements IMoverModel {
 
 
             //Only set new shapefile layer if it hasn't been set yet, or the shapefile changed
-            if(!Objects.equals(shapefileName, shapeName)){
+            if(!Objects.equals(shapefileName, shapeName) || shapefileLayerStatus == 3){
                 StyleBuilder styleBuilder = new StyleBuilder();
                 PolygonSymbolizer polygonShapefileSymbolize = styleBuilder.createPolygonSymbolizer(UIVars.onShapefileBg, UIVars.onShapefileBdColor, 0);
                 polygonShapefileSymbolize.getFill().setOpacity(styleBuilder.literalExpression(0.7));
@@ -248,6 +253,12 @@ public class Mover_Model implements IMoverModel {
                 SimpleFeatureType schema = shapefile.getSchema();
                 //Get shapefile crs
                 CoordinateReferenceSystem sourceCRS =  schema.getCoordinateReferenceSystem();
+
+                if(sourceCRS == null){
+                    observer.showMessage(new String[]{"Shapefile has no CRS defined"});
+                    shapefileLayerStatus = 0;
+                }
+
                 //Set transform from shapefile crs to wgs84 if the shapefile crs is different from WGS84
                 MathTransform transform = null;
                 if(!Objects.equals(sourceCRS.getName().getCode(), DefaultGeographicCRS.WGS84.getName().getCode()))
@@ -287,6 +298,7 @@ public class Mover_Model implements IMoverModel {
             }
         }catch (Exception ex){
             ex.printStackTrace();
+            shapefileLayerStatus = 0;
         }
     }
 
@@ -461,8 +473,12 @@ public class Mover_Model implements IMoverModel {
     @Override
     public void previewTransfers() {
         boolean enableTransfer = false;
+        int prevShapefileLayerStatus = shapefileLayerStatus;
 
         setShapefileLayer();
+
+        if(shapefileLayerStatus == 0)
+            return;
 
         if(shapefileLayerStatus == 1){
             mapContent = new MapContent();
@@ -481,30 +497,58 @@ public class Mover_Model implements IMoverModel {
         resetDefaultCollection(sharedFeatures);
         resetDefaultCollection(transferFeatures);
 
-        Hashtable<String, Region> _sourceRegions = getRegionsList(SourceFTP);
-        if(_sourceRegions == null){
+        boolean getRegionsFromRemote = false;
 
-            //2 - Error connecting to Source FTP
-            observer.previewTransfers(2);
-            return;
+        //Shapefile was not yet added before and is to be added -> fetch the regions from the servers
+        if(prevShapefileLayerStatus == 0 && shapefileLayerStatus == 1)
+            getRegionsFromRemote = true;
+        else if(prevShapefileLayerStatus == 2 && shapefileLayerStatus == 1){
+            //Shapefile layer was already added before, and new shapefile was added.
+            //Ask the user if they want to get the list of regions from the servers again
+            int ans = observer.questionMessage("New shapefile added", "Fetch regions from server again?");
+            getRegionsFromRemote = ans == 0;
+
+        }else if(prevShapefileLayerStatus == 3 && shapefileLayerStatus == 1){
+            //Shapefile layer was already added before, and same shapefile was added.
+            //Ask the user if they want to get the list of regions from the servers again
+            int ans = observer.questionMessage("Shapefile changed", "Fetch regions from server again?");
+            getRegionsFromRemote = ans == 0;
+        }else if(shapefileLayerStatus == 2 && prevShapefileLayerStatus == 2){
+            //Nothing changed, ask the user if they want to get the list of regions from the servers again
+            int ans = observer.questionMessage("No changes detected in shapefile", "Fetch regions from server again?");
+            getRegionsFromRemote = ans == 0;
         }
 
+        if(getRegionsFromRemote) {
 
-        if(_sourceRegions.size() > 0){
-            sourceRegions = _sourceRegions;
+            Hashtable<String, Region> _sourceRegions = getRegionsList(SourceFTP);
+            if (_sourceRegions == null) {
+
+                //2 - Error connecting to Source FTP
+                observer.previewTransfers(2);
+                return;
+            }
+
+
+            if (_sourceRegions.size() > 0) {
+                sourceRegions = _sourceRegions;
+                sourceFeatures.addAll(getRegionsCollection(sourceRegions));
+            }
+
+            Hashtable<String, Region> _targetRegions = getRegionsList(TargetFTP);
+            if (_targetRegions == null) {
+                //3 - Error connecting to Target FTP
+                observer.previewTransfers(3);
+                return;
+            }
+
+
+            if (_targetRegions.size() > 0) {
+                targetRegions = _targetRegions;
+                targetFeatures.addAll(getRegionsCollection(targetRegions));
+            }
+        }else{
             sourceFeatures.addAll(getRegionsCollection(sourceRegions));
-        }
-
-        Hashtable<String, Region> _targetRegions = getRegionsList(TargetFTP);
-        if(_targetRegions == null){
-            //3 - Error connecting to Target FTP
-            observer.previewTransfers(3);
-            return;
-        }
-
-
-        if(_targetRegions.size() > 0){
-            targetRegions = _targetRegions;
             targetFeatures.addAll(getRegionsCollection(targetRegions));
         }
 

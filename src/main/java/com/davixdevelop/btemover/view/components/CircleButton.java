@@ -16,7 +16,7 @@ public class CircleButton extends JButton {
     public static ImageIcon SAVE_ICON = new ImageIcon(CircleButton.class.getResource("save.png"));
     public static ImageIcon OSM_ICON = new ImageIcon(CircleButton.class.getResource("osm.png"));
     public static ImageIcon EXPAND_ICON = new ImageIcon(CircleButton.class.getResource("expand.png"));
-
+    public static ImageIcon SHAPEFILE_ICON = new ImageIcon(CircleButton.class.getResource("shapefile.png"));
 
     private int rad;
     private Color backgroundColor;

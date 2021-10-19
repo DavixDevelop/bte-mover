@@ -1,16 +1,14 @@
 package com.davixdevelop.btemover.view;
 
 import com.davixdevelop.btemover.model.Mover_Model;
-import com.davixdevelop.btemover.view.components.LoadingSpinner;
-import com.davixdevelop.btemover.view.components.PanPanel;
-import com.davixdevelop.btemover.view.components.RoundedButton;
-import com.davixdevelop.btemover.view.components.RoundedTextField;
+import com.davixdevelop.btemover.view.components.*;
 import com.davixdevelop.btemover.view.style.RegionListRenderer;
 import com.davixdevelop.btemover.view.style.RoundedInsetBorder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,10 +33,10 @@ public class Mover_View extends JFrame {
     private final JPanel ftpOpt;
     private final JLabel targetFTP_label;
     private final PanPanel mapPanel;
-    private final JLabel onSourceCountLabel;
-    private final JLabel onTargetCountLabel;
-    private final JLabel onSharedCountLabel;
-    private final JLabel onTransferCountLabel;
+    private final ToggleableRoundedLabel onSourceCountLabel;
+    private final ToggleableRoundedLabel onTargetCountLabel;
+    private final ToggleableRoundedLabel onSharedCountLabel;
+    private final ToggleableRoundedLabel onTransferCountLabel;
     private final JList queryList;
     private final JLabel progressLabel;
     private final LoadingSpinner spinner;
@@ -47,8 +45,6 @@ public class Mover_View extends JFrame {
     public void setOnTargetCountLabel(String count){onTargetCountLabel.setText(count);}
     public void setOnSharedCountLabel(String count){onSharedCountLabel.setText(count);}
     public void setOnTransferCountLabel(String count){onTransferCountLabel.setText(count);}
-
-
 
     public Mover_View(Mover_Model model){
         super();
@@ -262,17 +258,7 @@ public class Mover_View extends JFrame {
         legendPanel.setOpaque(false);
         legendPanel.setBackground(UIVars.transparentColor);
 
-        onSourceCountLabel = new JLabel(){
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D)g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(UIVars.onSourceColor);
-                g2.fillRoundRect(0,0,getWidth(), getHeight(), UIVars.legendRadius, UIVars.legendRadius);
-                super.paintComponent(g2);
-            }
-        };
-        onSourceCountLabel.setBorder(new RoundedInsetBorder(UIVars.legendRadius, new int[]{0,0,0,0}, UIVars.onSourceColor));
+        onSourceCountLabel = new ToggleableRoundedLabel(UIVars.legendRadius, UIVars.onSourceColor);
         onSourceCountLabel.setPreferredSize(new Dimension(UIVars.legendIconSize, UIVars.legendIconSize));
         onSourceCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
         legendPanel.add(onSourceCountLabel);
@@ -280,27 +266,11 @@ public class Mover_View extends JFrame {
         JLabel sourceLegendLabel = new JLabel("Source");
         sourceLegendLabel.setFont(UIVars.RobotoBold.deriveFont(14f));
         sourceLegendLabel.setForeground(Color.white);
-        /*c = new GridBagConstraints();
-        c.gridx = 1;
-        c.gridy = 0;
-        c.weightx = 1.0;
-        c.fill = GridBagConstraints.HORIZONTAL;*/
         legendPanel.add(sourceLegendLabel);
 
         legendPanel.add(Box.createRigidArea(new Dimension(UIVars.legendPanelSpacing, 0)));
 
-
-        onTargetCountLabel = new JLabel(){
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D)g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(UIVars.onTargetColor);
-                g2.fillRoundRect(0,0,getWidth(), getHeight(), UIVars.legendRadius, UIVars.legendRadius);
-                super.paintComponent(g2);
-            }
-        };
-        onTargetCountLabel.setBorder(new RoundedInsetBorder(UIVars.legendRadius, new int[]{0,0,0,0}, UIVars.onTargetColor));
+        onTargetCountLabel = new ToggleableRoundedLabel(UIVars.legendRadius, UIVars.onTargetColor);
         onTargetCountLabel.setPreferredSize(new Dimension(UIVars.legendIconSize, UIVars.legendIconSize));
         onTargetCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
         legendPanel.add(onTargetCountLabel);
@@ -312,17 +282,7 @@ public class Mover_View extends JFrame {
 
         legendPanel.add(Box.createRigidArea(new Dimension(UIVars.legendPanelSpacing, 0)));
 
-        onSharedCountLabel = new JLabel(){
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D)g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(UIVars.onSharedColor);
-                g2.fillRoundRect(0,0,getWidth(), getHeight(), UIVars.legendRadius, UIVars.legendRadius);
-                super.paintComponent(g2);
-            }
-        };
-        onSharedCountLabel.setBorder(new RoundedInsetBorder(UIVars.legendRadius, new int[]{0,0,0,0}, UIVars.onSharedColor));
+        onSharedCountLabel = new ToggleableRoundedLabel(UIVars.legendRadius, UIVars.onSharedColor);
         onSharedCountLabel.setPreferredSize(new Dimension(UIVars.legendIconSize, UIVars.legendIconSize));
         onSharedCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
         onSharedCountLabel.setForeground(Color.white);
@@ -333,19 +293,7 @@ public class Mover_View extends JFrame {
         sharedLegendLabel.setForeground(Color.white);
         legendPanel.add(sharedLegendLabel);
 
-        legendPanel.add(Box.createRigidArea(new Dimension(UIVars.legendPanelSpacing, 0)));
-
-        onTransferCountLabel = new JLabel(){
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D)g;
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(UIVars.onTransferColor);
-                g2.fillRoundRect(0,0,getWidth(), getHeight(), UIVars.legendRadius, UIVars.legendRadius);
-                super.paintComponent(g2);
-            }
-        };
-        onTransferCountLabel.setBorder(new RoundedInsetBorder(UIVars.legendRadius, new int[]{0,0,0,0}, UIVars.onTransferColor));
+        onTransferCountLabel = new ToggleableRoundedLabel(UIVars.legendRadius, UIVars.onTransferColor);
         onTransferCountLabel.setPreferredSize(new Dimension(UIVars.legendIconSize, UIVars.legendIconSize));
         onTransferCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
         onTransferCountLabel.setForeground(Color.white);
@@ -365,13 +313,13 @@ public class Mover_View extends JFrame {
         c.insets = new Insets(10,10,10,10);
         previewPanel.add(legendPanel, c);
 
-        //ETA: 00:01:15 Reg2D: 0/200 Reg3D: 0/500
-        progressLabel = new JLabel("");
+        //ETR: 00:01:15 Reg2D: 0/200 Reg3D: 0/500
+        progressLabel = new JLabel("ETR: 00:01:15 Reg2D: 0/200 Reg3D: 0/500");
         progressLabel.setFont(UIVars.RobotoRegular.deriveFont(UIVars.primaryFontSize));
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 1;
-        c.anchor = GridBagConstraints.LINE_END;
+        c.anchor = GridBagConstraints.LAST_LINE_END;
         c.weightx = 0.0;
         c.insets = new Insets(10,10,10,10);
         previewPanel.add(progressLabel, c);
@@ -455,6 +403,12 @@ public class Mover_View extends JFrame {
     public void initExpandButtonListener(ActionListener action){mapPanel.getExpandButton().addActionListener(action);}
     public void toggleOSMButton(boolean toggle){mapPanel.getOsmToggleButton().setToggledOn(toggle);}
 
+    public ToggleableRoundedLabel getOnSourceCountLabel() { return onSourceCountLabel; }
+    public ToggleableRoundedLabel getOnTargetCountLabel() { return onTargetCountLabel; }
+    public ToggleableRoundedLabel getOnSharedCountLabel() { return onSharedCountLabel; }
+    public ToggleableRoundedLabel getOnTransferCountLabel() { return onTransferCountLabel; }
+
+    public CircleButton getToggleShapefileLayerButton() { return mapPanel.getToggleShapefileLayer();}
 
     public PanPanel getMapPanel(){
         return mapPanel;
@@ -470,6 +424,7 @@ public class Mover_View extends JFrame {
             mapPanel.getOsmToggleButton().setEnabled(enable);
             mapPanel.getExportButton().setEnabled(enable);
             mapPanel.getExpandButton().setEnabled(enable);
+            mapPanel.getToggleShapefileLayer().setEnabled(enable);
     }
     public void enableTransferButton(boolean enable){
         transferButton.setEnabled(enable);}

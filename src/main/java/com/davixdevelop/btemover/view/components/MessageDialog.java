@@ -99,23 +99,17 @@ public class MessageDialog extends JDialog {
 
         setContentPane(optionPane);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        okButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                optionPane.setValue(new Integer(JOptionPane.OK_OPTION));
-                setVisible(false);
-            }
+        okButton.addActionListener(e -> {
+            optionPane.setValue(new Integer(JOptionPane.OK_OPTION));
+            setVisible(false);
         });
 
-        expandButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                logScroll.setVisible(!logScroll.isVisible());
-                optionPane.revalidate();
-                UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
-                //getContentPane().repaint();
+        expandButton.addActionListener(e -> {
+            logScroll.setVisible(!logScroll.isVisible());
+            optionPane.revalidate();
+            UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
+            //getContentPane().repaint();
 
-            }
         });
 
         addWindowListener(new WindowAdapter() {

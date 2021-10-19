@@ -25,6 +25,8 @@ public interface IMoverModelObserver {
      */
     void zoomToLayers(Integer status);
     void showMessage(String[] message);
+    int questionMessage(String title, String question);
+    int numberMessage(String label, String placeholder);
 
     /**
      * Set's the region query icon in the DefaultListModel
