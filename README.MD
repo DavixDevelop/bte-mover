@@ -52,6 +52,8 @@ While this is happening in the two background threads, the aforementioned query 
 The application also displays an estimated time remain on the number of 2d/3d region processed on the bottom right. 
 If for any reason, the transfer fails for a region, it's status in the query list gets changed to an X.
 
+If for any reason an error occurs during the transfers, the whole process **stops**, and a message notify the user to check the logs, displays.
+
 Once the transfer process finishes, the application display's on the bottom how long it took to transfer the files.
 
 ###Future plans

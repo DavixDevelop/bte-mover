@@ -516,17 +516,17 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
             //Shapefile layer was already added before, and new shapefile was added.
             //Ask the user if they want to get the list of regions from the servers again
             int ans = observer.questionMessage("New shapefile added", "Fetch regions from server again?");
-            getRegionsFromRemote = ans == 0;
+            getRegionsFromRemote = (ans == 0) ? true : false;
 
         }else if(prevShapefileLayerStatus == 3 && shapefileLayerStatus == 1){
             //Shapefile layer was already added before, and same shapefile was added.
             //Ask the user if they want to get the list of regions from the servers again
             int ans = observer.questionMessage("Shapefile changed", "Fetch regions from server again?");
-            getRegionsFromRemote = ans == 0;
+            getRegionsFromRemote = (ans == 0) ? true : false;
         }else if(shapefileLayerStatus == 2 && prevShapefileLayerStatus == 2){
             //Nothing changed, ask the user if they want to get the list of regions from the servers again
             int ans = observer.questionMessage("No changes detected in shapefile", "Fetch regions from server again?");
-            getRegionsFromRemote = ans == 0;
+            getRegionsFromRemote = (ans == 0) ? true : false;
         }
 
         if(getRegionsFromRemote) {
@@ -543,6 +543,9 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
             if (_sourceRegions.size() > 0) {
                 sourceRegions = _sourceRegions;
                 sourceFeatures.addAll(getRegionsCollection(sourceRegions));
+            }else{
+                sourceRegions = new Hashtable<>();
+                sourceFeatures.clear();
             }
 
             Hashtable<String, Region> _targetRegions = getRegionsList(TargetFTP);
@@ -556,6 +559,9 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
             if (_targetRegions.size() > 0) {
                 targetRegions = _targetRegions;
                 targetFeatures.addAll(getRegionsCollection(targetRegions));
+            }else{
+                targetRegions = new Hashtable<>();
+                transferFeatures.clear();
             }
         }else{
             sourceFeatures.addAll(getRegionsCollection(sourceRegions));
@@ -639,6 +645,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
             enableTransfer = true;
 
             //Add transfer regions to download queue
+            downloadQueue.clear();
             downloadQueue.addAll(transferRegions.values());
         }
 
@@ -882,6 +889,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     public void transferRegions() {
         timerModel = new TimerModel(getTransferRegionsCount(), getTransferRegions().values().stream().mapToInt(Region::getRegion3dCount).sum());
         threadsDone = 0;
+        final boolean[] exitThread = {false};
         for( int i = 0; i < threadCount; i++){
             Runnable getPutRunnable = () -> {
                 RegionFTPClient sourceFTPClient = new RegionFTPClient(getSourceFTP());
@@ -949,16 +957,22 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                                         }else{
                                             //Set icon in query item to X (failed)
                                             observer.setQueryItemIcon(region, 4);
+                                            exitThread[0] = true;
+                                            break;
                                         }
 
                                     }else {
                                         //Set icon in query item to X (failed)
                                         observer.setQueryItemIcon(region, 4);
+                                        exitThread[0] = true;
+                                        break;
                                     }
                                 }catch (Exception ex){
                                     LogUtils.log(ex);
                                     //Set icon in query item to X (failed)
                                     observer.setQueryItemIcon(region, 4);
+                                    exitThread[0] = true;
+                                    break;
                                 }
                             }
 
@@ -969,16 +983,17 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                             //Notify observer of progress done
                             observer.updateProgress(-3);
                         }else
-                            observer.showMessage(new String[]{"Could not login to Taeger " + getTargetFTP().getProtocol().toUpperCase() + " Server", "Check connection or login info"});
+                            observer.showMessage(new String[]{"Could not login to Target  " + getTargetFTP().getProtocol().toUpperCase() + " Server", "Check connection or login info"});
                     }else{
                         observer.showMessage(new String[]{"Could not login to Source " + getSourceFTP().getProtocol().toUpperCase() + " Server", "Check connection or login info"});
                     }
                 }catch (Exception ex){
                     LogUtils.log(ex);
+                    exitThread[0] = false;
                     observer.showMessage(new String[]{"Error while transferring", ex.toString()});
                 }
 
-                observer.transferDone();;
+                observer.transferDone(exitThread);;
             };
 
             Thread getPutThread = new Thread(getPutRunnable);

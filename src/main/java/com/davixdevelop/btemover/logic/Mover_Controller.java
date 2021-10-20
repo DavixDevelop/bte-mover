@@ -322,8 +322,6 @@ public class Mover_Controller implements IMoverModelObserver {
 
         model.updateLayers();
 
-
-
         if(status == 1){
             zoomToLayers(3);
 
@@ -513,7 +511,7 @@ public class Mover_Controller implements IMoverModelObserver {
     }
 
     @Override
-    public void transferDone() {
+    public void transferDone(boolean[] error) {
         //Enable back the preview button and other tool buttons
         if(model.IncreaseThreadsDone() == model.getThreadCount()){
             view.enableToolButtons(true);
@@ -523,7 +521,13 @@ public class Mover_Controller implements IMoverModelObserver {
             view.setOnTarget3DCountLabel(model.getTargetRegions3DCount());
             view.setOnShared3DCountLabel(model.getSharedRegions3DCount());
             view.setOnTransfer3DCountLabel(model.getTransferRegions3DCount());
+
+            if(error[0] == true){
+                showMessage(new String[]{"Some error's occurred during transferring", "Check log"});
+            }
         }
+
+
     }
 
     @Override

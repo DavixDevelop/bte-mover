@@ -49,7 +49,7 @@ public interface IMoverModelObserver {
      *                -3 - Done
      */
     void updateProgress(Integer status);
-    void transferDone();
+    void transferDone(boolean[] error);
 
     void toggleOSMLayer(boolean toggle);
 

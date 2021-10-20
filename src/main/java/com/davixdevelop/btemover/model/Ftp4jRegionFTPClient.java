@@ -83,6 +83,8 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
         try{
             String[] message = connect(ftpOptions.getServer(), ftpOptions.getPort());
             login(ftpOptions.getUser(), ftpOptions.getPassword());
+
+            setType(FTPClient.TYPE_BINARY);
             return true;
 
         }catch(Exception ex){
@@ -175,8 +177,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-            setType(FTPClient.TYPE_BINARY);
-
             download(source, outputStream, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
@@ -228,8 +228,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3d + ".3dr";
 
-            setType(FTPClient.TYPE_BINARY);
-
             download(source, outputStream, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
@@ -280,8 +278,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             FileInputStream inputStream = new FileInputStream(region2DPath);
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-            setType(FTPClient.TYPE_BINARY);
-
             upload(target, inputStream, 0, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
@@ -329,8 +325,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
         try{
             FileInputStream inputStream = new FileInputStream(region3DPath);
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
-
-            setType(FTPClient.TYPE_BINARY);
 
             upload(target, inputStream, 0, 0, new FTPDataTransferListener() {
                 @Override
@@ -422,8 +416,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-            setType(FTPClient.TYPE_BINARY);
-
             download(source, byteArrayOutputStream, -1, new FTPDataTransferListener() {
                 @Override
                 public void started() {
@@ -481,8 +473,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
-
-            setType(FTPClient.TYPE_BINARY);
 
             download(source, byteArrayOutputStream, -1, new FTPDataTransferListener() {
                 @Override
@@ -543,9 +533,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-            setType(FTPClient.TYPE_BINARY);
-
-            upload(target, byteArrayInputStream, 0, 0, new FTPDataTransferListener() {
+            upload(target, byteArrayInputStream, -1, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
 
@@ -593,9 +581,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
 
-            setType(FTPClient.TYPE_BINARY);
-
-            upload(target, byteArrayInputStream, 0, 0, new FTPDataTransferListener() {
+            upload(target, byteArrayInputStream, -1, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
 
