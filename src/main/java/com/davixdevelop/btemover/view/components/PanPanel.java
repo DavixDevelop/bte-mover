@@ -37,7 +37,7 @@ public class PanPanel extends JLayeredPane {
         jMapPane.setRenderer(gtRenderer);
 
         jMapPane.setMapContent(model.getMapContent());
-        jMapPane.addMouseListener(new ScrollWheelPanTool(jMapPane));
+        jMapPane.addMouseListener(new ScrollWheelPanTool(jMapPane, model));
 
         JPanel toolbar = new JPanel();
         toolbar.setOpaque(false);

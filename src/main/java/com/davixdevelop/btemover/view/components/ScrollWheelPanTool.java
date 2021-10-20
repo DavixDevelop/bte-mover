@@ -1,12 +1,11 @@
 package com.davixdevelop.btemover.view.components;
 
+import com.davixdevelop.btemover.logic.IMouseObserver;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.Envelope2D;
 import org.geotools.swing.JMapPane;
-import org.geotools.swing.MapPane;
 import org.geotools.swing.event.MapMouseEvent;
 import org.geotools.swing.tool.AbstractZoomTool;
-import org.geotools.swing.tool.PanTool;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,10 +16,12 @@ import java.awt.*;
  * @author DavixDevelop
  */
 public class ScrollWheelPanTool extends AbstractZoomTool {
+    private IMouseObserver observer;
 
-    public ScrollWheelPanTool(JMapPane mapPane) {
+    public ScrollWheelPanTool(JMapPane mapPane, IMouseObserver observer) {
         setMapPane(mapPane);
         panning = false;
+        this.observer = observer;
     }
 
     private Point panePos;
@@ -86,6 +87,9 @@ public class ScrollWheelPanTool extends AbstractZoomTool {
     @Override
     public void onMouseReleased(MapMouseEvent ev) {
         panning = false;
+        if(SwingUtilities.isRightMouseButton(ev)){
+            observer.rightClicked(ev);
+        }
     }
 
     @Override

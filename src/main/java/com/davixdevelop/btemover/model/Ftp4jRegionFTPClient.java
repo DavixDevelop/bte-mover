@@ -418,14 +418,13 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
         final boolean[] result = {false};
         try{
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RegionFTPClient.OUTPUT_BUFFER_SIZE);
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
             setType(FTPClient.TYPE_BINARY);
 
-            download(source, byteArrayOutputStream, 0, new FTPDataTransferListener() {
+            download(source, byteArrayOutputStream, -1, new FTPDataTransferListener() {
                 @Override
                 public void started() {
 
@@ -478,14 +477,14 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
         final boolean[] result = {false};
         try{
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RegionFTPClient.OUTPUT_BUFFER_SIZE);
 
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
 
             setType(FTPClient.TYPE_BINARY);
 
-            download(source, byteArrayOutputStream, 0, new FTPDataTransferListener() {
+            download(source, byteArrayOutputStream, -1, new FTPDataTransferListener() {
                 @Override
                 public void started() {
 

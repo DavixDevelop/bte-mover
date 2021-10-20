@@ -4,13 +4,14 @@ import com.davixdevelop.btemover.logic.IMoverModelObserver;
 import com.davixdevelop.btemover.utils.GeoFeatureHelper;
 import com.davixdevelop.btemover.utils.LogUtils;
 import com.davixdevelop.btemover.view.UIVars;
-import org.apache.commons.io.FileUtils;
+import com.davixdevelop.btemover.logic.IMouseObserver;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.WKTReader2;
 import org.geotools.map.MapContent;
 import org.geotools.referencing.CRS;
@@ -18,21 +19,26 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.styling.PolygonSymbolizer;
 import org.geotools.styling.Style;
 import org.geotools.styling.StyleBuilder;
+import org.geotools.swing.event.MapMouseEvent;
 import org.geotools.tile.TileService;
 import org.geotools.tile.impl.osm.OSMService;
 import org.geotools.tile.util.TileLayer;
 import org.locationtech.jts.geom.*;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -45,7 +51,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author DavixDevelop
  */
-public class Mover_Model implements IMoverModel {
+public class Mover_Model implements IMoverModel, IMouseObserver {
 
     private IMoverModelObserver observer;
 
@@ -108,6 +114,7 @@ public class Mover_Model implements IMoverModel {
         return sourceRegions;
     }
     public Integer getSourceRegionsCount(){return sourceRegions.size();}
+    public int getSourceRegions3DCount() {return sourceRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
 
     private DynamicLayer targetRegionsLayer;
     public DynamicLayer getTargetRegionsLayer() { return targetRegionsLayer; }
@@ -115,6 +122,7 @@ public class Mover_Model implements IMoverModel {
     private Hashtable<String,Region> targetRegions;
     public Hashtable<String,Region> getTargetRegions() { return targetRegions; }
     public Integer getTargetRegionsCount(){return targetRegions.size();}
+    public int getTargetRegions3DCount() {return targetRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
 
     private DynamicLayer sharedRegionsLayer;
     public DynamicLayer getSharedRegionsLayer() { return sharedRegionsLayer; }
@@ -122,6 +130,7 @@ public class Mover_Model implements IMoverModel {
     private Hashtable<String,Region> sharedRegions;
     public Hashtable<String,Region> getSharedRegions() { return sharedRegions; }
     public Integer getSharedRegionsCount(){return sharedRegions.size();}
+    public int getSharedRegions3DCount() {return sharedRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
 
     private DynamicLayer transferRegionsLayer;
     public DynamicLayer getTransferRegionsLayer() {
@@ -132,6 +141,7 @@ public class Mover_Model implements IMoverModel {
 
     public Hashtable<String,Region> getTransferRegions() { return transferRegions; }
     public Integer getTransferRegionsCount(){return transferRegions.size();}
+    public int getTransferRegions3DCount() {return transferRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
 
     public Geometry shapefileGeometry;
 
@@ -980,5 +990,14 @@ public class Mover_Model implements IMoverModel {
                     Thread.sleep(20);
                 }catch (Exception ex){}
         }
+    }
+
+    @Override
+    public void rightClicked(MapMouseEvent event) {
+        DirectPosition2D position2D = event.getWorldPos();
+        String position = position2D.y + "," + position2D.x;
+        StringSelection stringSelection = new StringSelection(position);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
     }
 }

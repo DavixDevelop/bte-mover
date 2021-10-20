@@ -33,9 +33,13 @@ public class Mover_View extends JFrame {
     private final JPanel ftpOpt;
     private final JLabel targetFTP_label;
     private final PanPanel mapPanel;
+    private final JLabel sourceLegendLabel;
     private final ToggleableRoundedLabel onSourceCountLabel;
+    private final JLabel targetLegendLabel;
     private final ToggleableRoundedLabel onTargetCountLabel;
+    private final JLabel sharedLegendLabel;
     private final ToggleableRoundedLabel onSharedCountLabel;
+    private final JLabel transferLegendLabel;
     private final ToggleableRoundedLabel onTransferCountLabel;
     private final JList queryList;
     private final JLabel progressLabel;
@@ -45,6 +49,11 @@ public class Mover_View extends JFrame {
     public void setOnTargetCountLabel(String count){onTargetCountLabel.setText(count);}
     public void setOnSharedCountLabel(String count){onSharedCountLabel.setText(count);}
     public void setOnTransferCountLabel(String count){onTransferCountLabel.setText(count);}
+
+    public void setOnSource3DCountLabel(int count){sourceLegendLabel.setToolTipText("3d regions count: " + count);}
+    public void setOnTarget3DCountLabel(int count){transferLegendLabel.setToolTipText("3d regions count: " + count);}
+    public void setOnShared3DCountLabel(int count){sharedLegendLabel.setToolTipText("3d regions count: " + count);}
+    public void setOnTransfer3DCountLabel(int count){transferLegendLabel.setToolTipText("3d regions count: " + count);}
 
     public Mover_View(Mover_Model model){
         super();
@@ -263,7 +272,7 @@ public class Mover_View extends JFrame {
         onSourceCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
         legendPanel.add(onSourceCountLabel);
 
-        JLabel sourceLegendLabel = new JLabel("Source");
+        sourceLegendLabel = new JLabel("Source");
         sourceLegendLabel.setFont(UIVars.RobotoBold.deriveFont(14f));
         sourceLegendLabel.setForeground(Color.white);
         legendPanel.add(sourceLegendLabel);
@@ -275,7 +284,7 @@ public class Mover_View extends JFrame {
         onTargetCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
         legendPanel.add(onTargetCountLabel);
 
-        JLabel targetLegendLabel = new JLabel("Target");
+        targetLegendLabel = new JLabel("Target");
         targetLegendLabel.setFont(UIVars.RobotoBold.deriveFont(14f));
         targetLegendLabel.setForeground(Color.white);
         legendPanel.add(targetLegendLabel);
@@ -288,7 +297,7 @@ public class Mover_View extends JFrame {
         onSharedCountLabel.setForeground(Color.white);
         legendPanel.add(onSharedCountLabel);
 
-        JLabel sharedLegendLabel = new JLabel("Shared");
+        sharedLegendLabel = new JLabel("Shared");
         sharedLegendLabel.setFont(UIVars.RobotoBold.deriveFont(14f));
         sharedLegendLabel.setForeground(Color.white);
         legendPanel.add(sharedLegendLabel);
@@ -299,7 +308,7 @@ public class Mover_View extends JFrame {
         onTransferCountLabel.setForeground(Color.white);
         legendPanel.add(onTransferCountLabel);
 
-        JLabel transferLegendLabel = new JLabel("To transfer");
+        transferLegendLabel = new JLabel("To transfer");
         transferLegendLabel.setFont(UIVars.RobotoBold.deriveFont(14f));
         transferLegendLabel.setForeground(Color.white);
         legendPanel.add(transferLegendLabel);

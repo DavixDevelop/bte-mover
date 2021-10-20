@@ -349,6 +349,10 @@ public class Mover_Controller implements IMoverModelObserver {
         view.setOnSharedCountLabel(String.valueOf(model.getSharedRegionsCount()));
         view.setOnTransferCountLabel(String.valueOf(model.getTransferRegionsCount()));
 
+        view.setOnSource3DCountLabel(model.getSourceRegions3DCount());
+        view.setOnTarget3DCountLabel(model.getTargetRegions3DCount());
+        view.setOnShared3DCountLabel(model.getSharedRegions3DCount());
+        view.setOnTransfer3DCountLabel(model.getTransferRegions3DCount());
 
     }
 
@@ -363,19 +367,20 @@ public class Mover_Controller implements IMoverModelObserver {
     public void zoomToLayers(Integer layer) {
         ReferencedEnvelope envelope = null;
         if(layer == 0){
-            envelope = model.getShapefileLayer().getBounds();
+            envelope = new ReferencedEnvelope(model.getShapefileLayer().getBounds());
         }else if(layer == 1){
-            envelope = model.getSourceRegionsLayer().getBounds();
+            envelope = new ReferencedEnvelope(model.getSourceRegionsLayer().getBounds());
         }else if(layer == 2){
-            envelope = model.getTargetRegionsLayer().getBounds();
+            envelope = new ReferencedEnvelope(model.getTargetRegionsLayer().getBounds());
         }else if(layer == 3){
-            envelope = model.getTransferRegionsLayer().getBounds();
+            envelope = new ReferencedEnvelope(model.getTransferRegionsLayer().getBounds());
 
         }
         if(envelope != null)
             if(envelope.getMaximum(0) != -1.0 && envelope.getMaximum(1) != -1.0 && envelope.getMinimum(0) != 0.0 && envelope.getMinimum(1) != 0.0) {
                 envelope.expandBy(.1);
                 view.getMapPanel().setDisplayArea(envelope);
+
             }
     }
 
@@ -512,6 +517,12 @@ public class Mover_Controller implements IMoverModelObserver {
         //Enable back the preview button and other tool buttons
         if(model.IncreaseThreadsDone() == model.getThreadCount()){
             view.enableToolButtons(true);
+
+            //Update the 3D regions count
+            view.setOnSource3DCountLabel(model.getSourceRegions3DCount());
+            view.setOnTarget3DCountLabel(model.getTargetRegions3DCount());
+            view.setOnShared3DCountLabel(model.getSharedRegions3DCount());
+            view.setOnTransfer3DCountLabel(model.getTransferRegions3DCount());
         }
     }
 

@@ -316,7 +316,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
         byte[] content = null;
         try{
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RegionFTPClient.OUTPUT_BUFFER_SIZE);
 
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
@@ -364,7 +364,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
         final boolean[] result = {false};
         byte[] content = null;
         try{
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RegionFTPClient.OUTPUT_BUFFER_SIZE);
 
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";

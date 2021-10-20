@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
  * @author DavixDevelop
  */
 public class RegionFTPClient implements IRegionFTPClient {
+    public static int OUTPUT_BUFFER_SIZE = 1024 * 1024;
+
     private IRegionFTPClient ftpClient;
 
     /**
