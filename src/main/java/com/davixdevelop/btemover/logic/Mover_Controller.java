@@ -523,7 +523,7 @@ public class Mover_Controller implements IMoverModelObserver {
             view.setOnTransfer3DCountLabel(model.getTransferRegions3DCount());
 
             if(error[0] == true){
-                showMessage(new String[]{"Some error's occurred during transferring", "Check log"});
+                showMessage(new String[]{"Some error's occurred during transferring", "Check log and press the Preview button to try again"});
             }
         }
 
