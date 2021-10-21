@@ -9,6 +9,8 @@ In addition to ftp, the application also works with sftp, ftps and ftpes.
 ### How to use
 You can either download the jar file from the latest release, or you can build the project yourself. You can read more about that [here](https://github.com/DavixDevelop/bte-mover/wiki/Build-Instructions).
 To open the application you must have Java JRE installed.<br>
+It's recommend to run the application with the command `java -jar bte-mover-1.2-15.jar` inside a terminal, ex inside the command line, from the folder
+where the .jar file is located. This way, if any exceptions occur, they will be printed out to the terminal.
 
 <img src="https://github.com/DavixDevelop/bte-mover/raw/master/docs/images/how_to_use.png" />
 
