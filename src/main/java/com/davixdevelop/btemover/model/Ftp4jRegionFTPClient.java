@@ -386,6 +386,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
                 return false;
 
         }catch (Exception ex){
+            LogUtils.log(ftpOptions.getServer() + ":" + ex);
             return false;
         }
     }

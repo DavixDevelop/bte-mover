@@ -110,15 +110,25 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
             if(!open())
                 return null;
 
+            //Get list of region2d and region3d files at once and close connection
             if(ftpOptions.getPath() != null)
                 if(ftpOptions.getPath().length() != 0)
-                    channelSftp.cd("/" + ftpOptions.getPath());
+                    channelSftp.cd("/" + ftpOptions.getPath() + "/region2d");
+                else
+                    channelSftp.cd("/region2d");
+            else
+                channelSftp.cd("/region2d");
 
-            //Get list of region2d and region3d files at once and close connection
-            channelSftp.cd("region2d");
             Vector<ChannelSftp.LsEntry> files = channelSftp.ls("*.2dr");
-            channelSftp.cd("/");
-            channelSftp.cd("region3d");
+
+            if(ftpOptions.getPath() != null)
+                if(ftpOptions.getPath().length() != 0)
+                    channelSftp.cd("/" + ftpOptions.getPath() + "/region3d");
+                else
+                    channelSftp.cd("/region3d");
+            else
+                channelSftp.cd("/region3d");
+
             Vector<ChannelSftp.LsEntry> files2 = channelSftp.ls("*.3dr");
             close();
 
@@ -277,19 +287,33 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
     public boolean testClient() {
         try {
             if(open()){
+                /*if(ftpOptions.getPath() != null)
+                    if(ftpOptions.getPath().length() != 0)
+                        channelSftp.cd("/" + ftpOptions.getPath());*/
+
                 if(ftpOptions.getPath() != null)
                     if(ftpOptions.getPath().length() != 0)
-                        channelSftp.cd("/" + ftpOptions.getPath());
+                        channelSftp.cd("/" + ftpOptions.getPath() + "/region2d");
+                    else
+                        channelSftp.cd("/region2d");
+                else
+                    channelSftp.cd("/region2d");
 
-                channelSftp.cd("region2d");
-                channelSftp.cd("/");
-                channelSftp.cd("region3d");
+                //channelSftp.cd("/");
+                if(ftpOptions.getPath() != null)
+                    if(ftpOptions.getPath().length() != 0)
+                        channelSftp.cd("/" + ftpOptions.getPath() + "/region3d");
+                    else
+                        channelSftp.cd("/region3d");
+                else
+                    channelSftp.cd("/region3d");
 
                 close();
                 return true;
             }else
                 return false;
         }catch (Exception ex){
+            LogUtils.log(ftpOptions.getServer() + ":" + ex);
             return false;
         }
     }
