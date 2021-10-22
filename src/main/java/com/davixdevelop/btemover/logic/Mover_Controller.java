@@ -22,7 +22,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.util.Objects;
 
 public class Mover_Controller implements IMoverModelObserver {
@@ -206,6 +209,33 @@ public class Mover_Controller implements IMoverModelObserver {
 
                         //Write buffered image to file
                         ImageIO.write(bufferedImage, "png", imageFile);
+
+                        //Create aux.xml file
+                        DecimalFormatSymbols otherSymbols = new DecimalFormatSymbols(Locale.GERMAN);
+                        otherSymbols.setDecimalSeparator('.');
+                        DecimalFormat scientificNotion = new DecimalFormat("0.##############E0", otherSymbols);
+                        ReferencedEnvelope exportedImageBounds = model.getMapContent().getViewport().getBounds();
+                        double[] upper_corner = exportedImageBounds.getUpperCorner().getCoordinate();
+                        double[] lower_corner = exportedImageBounds.getLowerCorner().getCoordinate();
+                        double d_xres = (upper_corner[0] - lower_corner[0]) / rectangleImage.width;
+                        double d_yres = (Math.abs(upper_corner[1] - lower_corner[1]) / rectangleImage.height) * -1;
+
+                        String ulx = scientificNotion.format(lower_corner[0]);
+                        String xres = scientificNotion.format(d_xres);
+                        String uly = scientificNotion.format(upper_corner[1]);
+                        String yres = scientificNotion.format(d_yres);
+
+                        File auxFile = new File(imageFile + ".aux.xml");
+                        PrintWriter printWriter = new PrintWriter(new FileWriter(auxFile));
+                        printWriter.println("<PAMDataset>");
+                        ////X_COORDINATE_OF_TOP_LEFT_CORNER, (X_SIZE_IN_MAP/X_PIXEL_OF_IMAGE),-0.0000000000000000e+000, Y_COORDINATE_OF_TOP_LEFT_CORNER, 0.0000000000000000e+000,-(Z_SIZE_IN_MAP/Z_PIXEL_OF_IMAGE)
+                        printWriter.println("  <GeoTransform> " + ulx + ", " + xres + ", -0.0000000000000000e+000, " + uly + ", 0.0000000000000000e+000, " + yres + "</GeoTransform>");
+                        printWriter.println("  <Metadata domain=\"IMAGE_STRUCTURE\">");
+                        printWriter.println("    <MDI key=\"INTERLEAVE\">PIXEL</MDI>");
+                        printWriter.println("  </Metadata>");
+                        printWriter.println("</PAMDataset>");
+                        printWriter.close();
+
                     }
 
                     model.getMapContent().getViewport().setScreenArea(oldScreenArea);

@@ -40,7 +40,7 @@ If any error occurs during this process a message dialog gets displayed with the
 
 Once the process finishes, and the spinner hides, that map displays the aforementioned region and automatically zoom's to the to be transferred regions, if it found any. 
 #### Map
-The map enables you to zoom and pan around with a mouse. You can also right-click to copy the geographic coordinates. On the right side of the map is also a toolbar that enables you to export the current view to an image (the `Save icon`), display the `OSM` layer, automatically zoom back to the regions, and toggle the shapefile's layer visibility.
+The map enables you to zoom and pan around with a mouse. You can also right-click to copy the geographic coordinates. On the right side of the map is also a toolbar that enables you to export the current view to an image (the `Save icon`, this also creates an auxiliary file, so the exported image becomes georeferenced and can be open in a GIS Software), display the `OSM` layer, automatically zoom back to the regions, and toggle the shapefile's layer visibility.
 #### Map legend
 Under the map we can also find the legend, that indicates each region type, with the count of regions in that type. Hovering over the label of each type shows the total amount of 3D regions for that type. Clicking on the count toggle's the layer's visibility.
 #### Query list
