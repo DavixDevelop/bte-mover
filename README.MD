@@ -47,6 +47,7 @@ Under the map we can also find the legend, that indicates each region type, with
 On the right side we can also see the query list, that show's which regions will get transferred. The first number shows the number 3d regions in the region, following with the name of the region itself.
 #### Transfer process
 To transfer the marked regions, we press the `Transfer` button. During this process the region 2d files content, and it's region 3d files content get downloaded to the memory and immediately the content of each file gets uploaded to the target server remote 2d/3d region file.
+If the 3d region contains only air (16384 bytes large or less) it gets skipped. 
 
 While this is happening in the two background threads, the aforementioned query list gets constantly updated. The icon on the right side indicates the status of the region (download/upload/done), while the number of 3d region is count down to 0 for each processed region 3d file.
 <br> After each region's gets processed the map, and the legend also get updated.

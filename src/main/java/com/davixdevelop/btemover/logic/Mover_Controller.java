@@ -217,8 +217,8 @@ public class Mover_Controller implements IMoverModelObserver {
                         ReferencedEnvelope exportedImageBounds = model.getMapContent().getViewport().getBounds();
                         double[] upper_corner = exportedImageBounds.getUpperCorner().getCoordinate();
                         double[] lower_corner = exportedImageBounds.getLowerCorner().getCoordinate();
-                        double d_xres = (upper_corner[0] - lower_corner[0]) / rectangleImage.width;
-                        double d_yres = (Math.abs(upper_corner[1] - lower_corner[1]) / rectangleImage.height) * -1;
+                        double d_xres = (upper_corner[0] - lower_corner[0]) / rectangleImage.getWidth();
+                        double d_yres = (Math.abs(upper_corner[1] - lower_corner[1]) / rectangleImage.getHeight()) * -1;
 
                         String ulx = scientificNotion.format(lower_corner[0]);
                         String xres = scientificNotion.format(d_xres);
@@ -491,6 +491,7 @@ public class Mover_Controller implements IMoverModelObserver {
      *                -1 - Increase region2d progress
      *                -2 - Increase region3d progress
      *                -3 - Done
+     *                -4 - Increase region3d progress, decrease total region3d count
      */
     @Override
     public void updateProgress(Integer status) {
@@ -499,6 +500,9 @@ public class Mover_Controller implements IMoverModelObserver {
             model.getTimerModel().Increase2DRegions();
         } else if (status == -2) {
             model.getTimerModel().Increase3DRegions();
+        }else if(status == -4) {
+            model.getTimerModel().Increase3DRegions();
+            model.getTimerModel().DecreaseTotal3DRegions();
         }else if(status == -3){
             long currentTime = System.currentTimeMillis();
             long elapsedTime = currentTime - model.getTimerModel().getStartTime();

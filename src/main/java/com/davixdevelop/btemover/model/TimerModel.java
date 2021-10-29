@@ -48,4 +48,9 @@ public class TimerModel {
     public int getProgress3DRegions() {
         return progress3DRegions;
     }
+
+    public void DecreaseTotal3DRegions() {
+        total3DRegions--;
+        totalRegions = total2DRegions + total3DRegions;
+    }
 }

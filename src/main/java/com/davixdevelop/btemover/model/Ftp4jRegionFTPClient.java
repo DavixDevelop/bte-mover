@@ -417,7 +417,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-            download(source, byteArrayOutputStream, -1, new FTPDataTransferListener() {
+            download(source, byteArrayOutputStream, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
 
@@ -447,8 +447,8 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             //Read byte output stream to array
             if(result[0]){
                 byteArrayOutputStream.flush();
-                content = byteArrayOutputStream.toByteArray();
                 byteArrayOutputStream.close();
+                content = byteArrayOutputStream.toByteArray();
             }
 
         }catch (Exception ex){
@@ -475,7 +475,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
 
-            download(source, byteArrayOutputStream, -1, new FTPDataTransferListener() {
+            download(source, byteArrayOutputStream, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
 
@@ -505,8 +505,8 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             //Read byte output stream to array
             if(result[0]){
                 byteArrayOutputStream.flush();
-                content = byteArrayOutputStream.toByteArray();
                 byteArrayOutputStream.close();
+                content = byteArrayOutputStream.toByteArray();
             }
 
 
@@ -534,7 +534,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-            upload(target, byteArrayInputStream, -1, 0, new FTPDataTransferListener() {
+            upload(target, byteArrayInputStream, 0, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
 
@@ -561,7 +561,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
                 }
             });
 
-            byteArrayInputStream.close();
         }catch (Exception ex){
             LogUtils.log(ex);
             result[0] = false;
@@ -582,7 +581,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(content);
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
 
-            upload(target, byteArrayInputStream, -1, 0, new FTPDataTransferListener() {
+            upload(target, byteArrayInputStream, 0, 0, new FTPDataTransferListener() {
                 @Override
                 public void started() {
 
@@ -609,7 +608,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
                 }
             });
 
-            byteArrayInputStream.close();
         }catch (Exception ex){
             LogUtils.log(ex);
             result[0] = false;

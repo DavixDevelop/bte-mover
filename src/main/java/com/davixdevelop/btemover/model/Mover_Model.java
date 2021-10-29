@@ -143,7 +143,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     public Integer getTransferRegionsCount(){return transferRegions.size();}
     public int getTransferRegions3DCount() {return transferRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
 
-    public Geometry shapefileGeometry;
+    public List<Geometry> shapefileGeometry;
 
     private MapContent mapContent;
     public MapContent getMapContent() {
@@ -275,6 +275,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                     transform = CRS.findMathTransform(sourceCRS, DefaultGeographicCRS.WGS84, true);
 
                 shapefileFeatures.clear();
+                shapefileGeometry = new ArrayList<>();
 
                 try{
                     while (iterator.hasNext()){
@@ -287,11 +288,8 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                         if(simpleFeature != null){
                             Geometry trGoe = (Geometry) simpleFeature.getDefaultGeometry();
 
-                            //Join all feature geometries into a single geometry
-                            if(shapefileGeometry == null)
-                                shapefileGeometry = trGoe;
-                            else
-                                shapefileGeometry = shapefileGeometry.union(trGoe);
+                            //Add feature geometries into list
+                            shapefileGeometry.add(trGoe);
 
                             //Add feature to shapefile features
                             shapefileFeatures.add(simpleFeature);
@@ -353,8 +351,14 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
      * @return True or False depending if the polygon intersects
      */
     public boolean polygonIntersectsWithShapefile(Polygon polygon){
+        boolean intersects = false;
         //Check if the region polygon intersects with the shapefile geometry
-        return shapefileGeometry.intersects(polygon);
+        for(int i = 0; i < shapefileGeometry.size(); i++){
+            intersects = shapefileGeometry.get(i).intersects(polygon);
+            if(intersects)
+                break;
+        }
+        return intersects;
     }
 
     /**
@@ -907,6 +911,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
                                     //Get the region 2d content
                                     byte[] regionContent = sourceFTPClient.get2DRegion(region);
+
                                     if(regionContent != null){
                                         //Set icon in query item to uploading
                                         observer.setQueryItemIcon(region,2);
@@ -924,17 +929,29 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                                                 //Get the region3d content
                                                 regionContent = sourceFTPClient.get3DRegion(region3DList.get(d));
                                                 if(regionContent != null){
-                                                    //Set icon in query item to uploading
-                                                    observer.setQueryItemIcon(region,2);
 
-                                                    //Put the region3d content in the target remote 3d region
-                                                    if(targetFTPClient.put3DRegion(regionContent, region3DList.get(d))){
-                                                        //Increase region3d count and update ETR
-                                                        observer.updateProgress(-2);
+                                                    //Skip 3d region if It's size is less than 16384 bytes (contains only air)
+                                                    if(regionContent.length > 16384){
 
+                                                        //Set icon in query item to uploading
+                                                        observer.setQueryItemIcon(region,2);
+
+                                                        //Put the region3d content in the target remote 3d region
+                                                        if(targetFTPClient.put3DRegion(regionContent, region3DList.get(d))){
+                                                            //Increase region3d count and update ETR
+                                                            observer.updateProgress(-2);
+
+                                                            //Decrease the 3d region count in the query item
+                                                            observer.setQueryItemCount(region, region3DList.size() - d - 1 );
+
+                                                        }
+                                                    }else{
+                                                        //Set icon in query item to uploading
+                                                        observer.setQueryItemIcon(region,2);
+                                                        //Increase region3d count, decrease total region3d count and update ETR
+                                                        observer.updateProgress(-4);
                                                         //Decrease the 3d region count in the query item
                                                         observer.setQueryItemCount(region, region3DList.size() - d - 1 );
-
                                                     }
 
                                                     Thread.sleep(200);

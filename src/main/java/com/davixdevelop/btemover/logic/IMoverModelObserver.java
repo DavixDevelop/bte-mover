@@ -47,6 +47,7 @@ public interface IMoverModelObserver {
      *                -1 - Increase region2d progress
      *                -2 - Increase region3d progress
      *                -3 - Done
+     *                -4 - Increase region3d progress, decrease total region3d count
      */
     void updateProgress(Integer status);
     void transferDone(boolean[] error);

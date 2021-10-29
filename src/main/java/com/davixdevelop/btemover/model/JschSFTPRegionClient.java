@@ -4,12 +4,8 @@ import com.davixdevelop.btemover.utils.LogUtils;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpProgressMonitor;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.regex.MatchResult;
@@ -42,6 +38,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
      */
     private void setSession(){
         try {
+            JSch.setLogger(new JschRegionLogger());
             JSch jSch = new JSch();
             session = jSch.getSession(ftpOptions.getUser(), ftpOptions.getServer(), ftpOptions.getPort());
             session.setPassword(ftpOptions.getPassword());
@@ -287,9 +284,6 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
     public boolean testClient() {
         try {
             if(open()){
-                /*if(ftpOptions.getPath() != null)
-                    if(ftpOptions.getPath().length() != 0)
-                        channelSftp.cd("/" + ftpOptions.getPath());*/
 
                 if(ftpOptions.getPath() != null)
                     if(ftpOptions.getPath().length() != 0)
@@ -299,7 +293,6 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
                 else
                     channelSftp.cd("/region2d");
 
-                //channelSftp.cd("/");
                 if(ftpOptions.getPath() != null)
                     if(ftpOptions.getPath().length() != 0)
                         channelSftp.cd("/" + ftpOptions.getPath() + "/region3d");
@@ -336,46 +329,30 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
      */
     @Override
     public byte[] get2DRegion(Region region) {
-        final boolean[] result = {false};
-
-        byte[] content = null;
         try{
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RegionFTPClient.OUTPUT_BUFFER_SIZE);
 
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-            channelSftp.get(source, byteArrayOutputStream);
-            channelSftp.get(source, byteArrayOutputStream, new SftpProgressMonitor() {
-                @Override
-                public void init(int op, String src, String dest, long max) {
-
+            try(InputStream inputStream = channelSftp.get(source)){
+                byte[] buff = new byte[4096];
+                int readBytes;
+                while((readBytes = inputStream.read(buff)) != -1){
+                    byteArrayOutputStream.write(buff, 0, readBytes);
                 }
 
-                @Override
-                public boolean count(long count) {
-                    return false;
-                }
+                inputStream.close();
 
-                @Override
-                public void end() {
-                    result[0] = true;
-                }
-            });
-
-            //Read byte output stream to array
-            if(result[0]) {
                 byteArrayOutputStream.flush();
-                content = byteArrayOutputStream.toByteArray();
-
                 byteArrayOutputStream.close();
+                return byteArrayOutputStream.toByteArray();
             }
+
         }catch (Exception ex){
             LogUtils.log(ex);
-            content = null;
+            return null;
         }
-
-        return content;
     }
 
     /**
@@ -385,44 +362,30 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
      */
     @Override
     public byte[] get3DRegion(String region3DName) {
-        final boolean[] result = {false};
-        byte[] content = null;
         try{
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RegionFTPClient.OUTPUT_BUFFER_SIZE);
 
             String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
                     "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
 
-            channelSftp.get(source, byteArrayOutputStream, new SftpProgressMonitor() {
-                @Override
-                public void init(int op, String src, String dest, long max) {
-
+            try(InputStream inputStream = channelSftp.get(source)){
+                byte[] buff = new byte[4096];
+                int readBytes;
+                while((readBytes = inputStream.read(buff)) != -1){
+                    byteArrayOutputStream.write(buff, 0, readBytes);
                 }
 
-                @Override
-                public boolean count(long count) {
-                    return false;
-                }
+                inputStream.close();
 
-                @Override
-                public void end() {
-                    result[0] = true;
-                }
-            });
-
-            //Read byte output stream to array
-            if(result[0]) {
                 byteArrayOutputStream.flush();
-                content = byteArrayOutputStream.toByteArray();
-
                 byteArrayOutputStream.close();
+                return byteArrayOutputStream.toByteArray();
             }
+
         }catch (Exception ex){
             LogUtils.log(ex);
-            content = null;
+            return null;
         }
-
-        return content;
     }
 
     /**
@@ -439,24 +402,18 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
 
-            channelSftp.put(byteArrayInputStream, target, new SftpProgressMonitor() {
-                @Override
-                public void init(int op, String src, String dest, long max) {
-
+            try(OutputStream outputStream = channelSftp.put(target, ChannelSftp.OVERWRITE)){
+                byte[] buff = new byte[4096];
+                int readBytes;
+                while((readBytes = byteArrayInputStream.read(buff)) != -1){
+                    outputStream.write(buff, 0, readBytes);
                 }
 
-                @Override
-                public boolean count(long count) {
-                    return false;
-                }
+                outputStream.flush();
+                outputStream.close();
 
-                @Override
-                public void end() {
-                    result[0] = true;
-                }
-            });
-
-            byteArrayInputStream.close();
+                result[0] = true;
+            }
 
         }catch (Exception ex){
             LogUtils.log(ex);
@@ -480,24 +437,18 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
             String target = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ? "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
 
-            channelSftp.put(byteArrayInputStream, target, new SftpProgressMonitor() {
-                @Override
-                public void init(int op, String src, String dest, long max) {
-
+            try(OutputStream outputStream = channelSftp.put(target, ChannelSftp.OVERWRITE)){
+                byte[] buff = new byte[4096];
+                int readBytes;
+                while((readBytes = byteArrayInputStream.read(buff)) != -1){
+                    outputStream.write(buff, 0, readBytes);
                 }
 
-                @Override
-                public boolean count(long count) {
-                    return false;
-                }
+                outputStream.flush();
+                outputStream.close();
 
-                @Override
-                public void end() {
-                    result[0] = true;
-                }
-            });
-
-            byteArrayInputStream.close();
+                result[0] = true;
+            }
 
         }catch (Exception ex){
             LogUtils.log(ex);
@@ -505,5 +456,22 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
         }
 
         return result[0];
+    }
+
+    public static class JschRegionLogger implements com.jcraft.jsch.Logger {
+        static java.util.Hashtable name=new java.util.Hashtable();
+        static{
+            name.put(new Integer(DEBUG), "DEBUG: ");
+            name.put(new Integer(INFO), "INFO: ");
+            name.put(new Integer(WARN), "WARN: ");
+            name.put(new Integer(ERROR), "ERROR: ");
+            name.put(new Integer(FATAL), "FATAL: ");
+        }
+        public boolean isEnabled(int level){
+            return true;
+        }
+        public void log(int level, String message){
+            LogUtils.log(name.get(new Integer(level)) + message);
+        }
     }
 }
