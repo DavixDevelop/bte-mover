@@ -491,7 +491,7 @@ public class Mover_Controller implements IMoverModelObserver {
      *                -1 - Increase region2d progress
      *                -2 - Increase region3d progress
      *                -3 - Done
-     *                -4 - Increase region3d progress, decrease total region3d count
+     *                -4 - Decrease total region3d count
      */
     @Override
     public void updateProgress(Integer status) {
@@ -501,7 +501,6 @@ public class Mover_Controller implements IMoverModelObserver {
         } else if (status == -2) {
             model.getTimerModel().Increase3DRegions();
         }else if(status == -4) {
-            model.getTimerModel().Increase3DRegions();
             model.getTimerModel().DecreaseTotal3DRegions();
         }else if(status == -3){
             long currentTime = System.currentTimeMillis();
@@ -525,7 +524,7 @@ public class Mover_Controller implements IMoverModelObserver {
         long hour = 0;
         long currentTime = System.currentTimeMillis();
 
-        int completeRegions = (status == -1 || status == -2) ? model.getTimerModel().getProgress2DRegions() + model.getTimerModel().getProgress3DRegions() : status;
+        int completeRegions = (status == -1 || status == -2 || status == -4) ? model.getTimerModel().getProgress2DRegions() + model.getTimerModel().getProgress3DRegions() : status;
 
         long elapsedTime = currentTime - model.getTimerModel().getStartTime();
         long progressTime = elapsedTime * model.getTimerModel().getTotalRegions() / completeRegions;

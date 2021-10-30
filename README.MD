@@ -33,12 +33,20 @@ Example of an url would then be `ftp://192.168.0.26:2121/saves/BTECelje` where `
 If the entered information is correct we can than test the connection by either pressing on the `Test` button. If the dialog icon changes to a check mark, the server is a valid one, but if the changes to an X, the entered information isn't correct, or the client can't establish a connection.<br>
 Pressing the `OK` button performs the same connection test and closes the dialog if the connection was a success.
 
+#### LIST Command
+The application uses the LIST command via the FTP protocol to get the list of regions. If the your FTP server doesn't properly support this command (it uses an unknown list format that can't be parsed),
+the application switches to the LEGACY mode. In this mode the application only gets a list of region names from the FTP server. This means that 3d regions that are less than 16384 bytes big get will also get included in the preview process, and only get
+skipped in the transfer process. This means, that the application first has to download the 3d region, and if it's size is less than 16384 bytes big, it gets skipped.
+This greatly increases the transfer process time, so It's advisable to first check if your FTP Server support's the LIST response formats listed [here](http://www.sauronsoftware.it/projects/ftp4j/manual.php#12).
+**If your FTP Server doesn't support any of the LIST response formats listed [here](http://www.sauronsoftware.it/projects/ftp4j/manual.php#12), the application will still work, but like mentioned it will switch to LEGACY mode, greatly increasing the transfer time.**
+
 #### Preview transfers
 Next, to preview the regions to be transferred, the source/target regions, and the shared regions (regions that are on both the source and target server), we press the `Preview` button.
-<br> As spinner shows to indicate that the process is running 
+<br> As spinner shows to indicate that the process is running
 If any error occurs during this process a message dialog gets displayed with the cause of the error, and an option to view the log (By pressing the `Show log` button).
 
-Once the process finishes, and the spinner hides, that map displays the aforementioned region and automatically zoom's to the to be transferred regions, if it found any. 
+Once the process finishes, and the spinner hides, that map displays the aforementioned region and automatically zoom's to the to be transferred regions, if it found any.
+
 #### Map
 The map enables you to zoom and pan around with a mouse. You can also right-click to copy the geographic coordinates. On the right side of the map is also a toolbar that enables you to export the current view to an image (the `Save icon`, this also creates an auxiliary file, so the exported image becomes georeferenced and can be open in a GIS Software), display the `OSM` layer, automatically zoom back to the regions, and toggle the shapefile's layer visibility.
 #### Map legend

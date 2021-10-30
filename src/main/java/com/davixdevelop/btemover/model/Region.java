@@ -19,6 +19,14 @@ public class Region {
     private String wkt;
     private List<String> region3d;
 
+    private boolean transfer2d = true;
+    public void setTransfer2d(boolean transfer2d) { this.transfer2d = transfer2d; }
+    public boolean isTransfer2d() { return transfer2d; }
+
+    private boolean legacy = false;
+    public void setLegacy(boolean legacy) { this.legacy = legacy; }
+    public boolean isLegacy() { return legacy; }
+
     private String name;
 
     public String getName() {

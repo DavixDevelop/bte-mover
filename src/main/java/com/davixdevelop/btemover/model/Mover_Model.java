@@ -34,7 +34,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.MouseEvent;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
@@ -158,8 +157,6 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
     //Queue to save regions to be downloaded
     private ConcurrentLinkedQueue<Region> downloadQueue = new ConcurrentLinkedQueue<>();
-    //Queue to save regions to be uploaded
-    private ConcurrentLinkedQueue<Region> uploadQueue = new ConcurrentLinkedQueue<>();
 
     /*private String tempFolder;
     private String temp2dFolder;
@@ -603,11 +600,10 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                             //If it does, create new region from the source region with the missing region 3d's and add it to the queue
                             Region targetRegion = targetRegions.get(entry.getKey());
 
-
-
                             List<String> missing3d = new ArrayList<>(sourceRegion.getRegion3d());
                             missing3d.removeAll(targetRegion.getRegion3d());
                             targetRegion.setRegion3d(missing3d);
+                            targetRegion.setTransfer2d(false);
                             transferRegions.put(entry.getKey(), targetRegion);
                         }
                     }
@@ -894,6 +890,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
         timerModel = new TimerModel(getTransferRegionsCount(), getTransferRegions().values().stream().mapToInt(Region::getRegion3dCount).sum());
         threadsDone = 0;
         final boolean[] exitThread = {false};
+
         for( int i = 0; i < threadCount; i++){
             Runnable getPutRunnable = () -> {
                 RegionFTPClient sourceFTPClient = new RegionFTPClient(getSourceFTP());
@@ -905,19 +902,24 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                             while(!downloadQueue.isEmpty()){
                                 Region region = downloadQueue.poll();
 
+                                int total3DCount = region.getRegion3dCount();
+
                                 try{
                                     //Set icon in query item to downloading
                                     observer.setQueryItemIcon(region, 1);
 
-                                    //Get the region 2d content
-                                    byte[] regionContent = sourceFTPClient.get2DRegion(region);
+                                    byte[] regionContent = null;
 
-                                    if(regionContent != null){
+                                    //Get the region 2d content
+                                    if(region.isTransfer2d())
+                                        regionContent = sourceFTPClient.get2DRegion(region);
+
+                                    if((region.isTransfer2d()) ? regionContent != null : true){
                                         //Set icon in query item to uploading
                                         observer.setQueryItemIcon(region,2);
 
                                         //Put the region 2d content int the the target remote 2d region
-                                        if(targetFTPClient.put2DRegion(regionContent, region)){
+                                        if((region.isTransfer2d()) ? targetFTPClient.put2DRegion(regionContent, region) : true){
                                             //Increase region2d count and update ETR
                                             observer.updateProgress(-1);
 
@@ -930,8 +932,8 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                                                 regionContent = sourceFTPClient.get3DRegion(region3DList.get(d));
                                                 if(regionContent != null){
 
-                                                    //Skip 3d region if It's size is less than 16384 bytes (contains only air)
-                                                    if(regionContent.length > 16384){
+                                                    //Skip 3d region (region is legacy) if It's size is less than 16384 bytes (contains only air)
+                                                    if((region.isLegacy()) ? regionContent.length > 16384 : true){
 
                                                         //Set icon in query item to uploading
                                                         observer.setQueryItemIcon(region,2);
@@ -942,16 +944,18 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                                                             observer.updateProgress(-2);
 
                                                             //Decrease the 3d region count in the query item
-                                                            observer.setQueryItemCount(region, region3DList.size() - d - 1 );
+                                                            total3DCount--;
+                                                            observer.setQueryItemCount(region, total3DCount);
 
                                                         }
                                                     }else{
                                                         //Set icon in query item to uploading
                                                         observer.setQueryItemIcon(region,2);
-                                                        //Increase region3d count, decrease total region3d count and update ETR
+                                                        //Decrease total region3d count and update ETR
                                                         observer.updateProgress(-4);
                                                         //Decrease the 3d region count in the query item
-                                                        observer.setQueryItemCount(region, region3DList.size() - d - 1 );
+                                                        total3DCount--;
+                                                        observer.setQueryItemCount(region, total3DCount);
                                                     }
 
                                                     Thread.sleep(200);

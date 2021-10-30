@@ -145,7 +145,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
             for (ChannelSftp.LsEntry file: files2) {
                 Matcher matcher = region3dValidator.matcher(file.getFilename());
-                if(matcher.find()){
+                if(matcher.find() && file.getAttrs().getSize() > 16384){
                     int x = Integer.parseInt(matcher.group(1)) >> 1;
                     int z = Integer.parseInt(matcher.group(3)) >> 1;
                     int y = Integer.parseInt(matcher.group(2));

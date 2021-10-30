@@ -3,6 +3,8 @@ package com.davixdevelop.btemover.model;
 import com.davixdevelop.btemover.utils.LogUtils;
 import it.sauronsoftware.ftp4j.FTPClient;
 import it.sauronsoftware.ftp4j.FTPDataTransferListener;
+import it.sauronsoftware.ftp4j.FTPFile;
+import it.sauronsoftware.ftp4j.FTPListParseException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -117,40 +119,94 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
                     changeDirectory("/" + ftpOptions.getPath());
             }
 
-            //Get list of region2d and region3d files at once and close connection
-            changeDirectory("region2d");
-            String[] files = listNames();
-            changeDirectoryUp();
-            changeDirectory("region3d");
-            String[] files2 = listNames();
-            close();
-
             //Store regions in a temp hashtable to quickly add 3d regions later
             Hashtable<String, Region> regions = new Hashtable<>();
-            for (String file:
-                    files) {
-                Matcher matcher = region2dValidator.matcher(file);
-                if(matcher.find()){
-                    MatchResult result = matcher.toMatchResult();
-                    int x = Integer.parseInt(result.group(1));
-                    int z = Integer.parseInt(result.group(2));
-                    Region region = new Region(x, z);
-                    if(region.isValid())
-                        regions.put(region.getName(), region);
+
+            try {
+                //Get list of region2d and region3d file at once and close connection
+                changeDirectory("region2d");
+                FTPFile[] files = list();
+                changeDirectoryUp();
+                changeDirectory("region3d");
+                FTPFile[] files2 = list();
+                close();
+
+                for(FTPFile file : files){
+                    Matcher matcher = region2dValidator.matcher(file.getName());
+                    if(matcher.find()){
+                        MatchResult result = matcher.toMatchResult();
+                        int x = Integer.parseInt(result.group(1));
+                        int z = Integer.parseInt(result.group(2));
+                        Region region = new Region(x, z);
+                        if(region.isValid())
+                            regions.put(region.getName(), region);
+                    }
                 }
-            }
 
-            for (String file: files2) {
-                Matcher matcher = region3dValidator.matcher(file);
-                if(matcher.find()){
-                    int x = Integer.parseInt(matcher.group(1)) >> 1;
-                    int z = Integer.parseInt(matcher.group(3)) >> 1;
-                    int y = Integer.parseInt(matcher.group(2));
-                    if(regions.containsKey(x + "." + z)){
-                        Region region = regions.get(x + "." + z);
+                for(FTPFile file : files2){
+                    Matcher matcher = region3dValidator.matcher(file.getName());
+                    if(matcher.find() && file.getSize() > 16384){
+                        int x = Integer.parseInt(matcher.group(1)) >> 1;
+                        int z = Integer.parseInt(matcher.group(3)) >> 1;
+                        int y = Integer.parseInt(matcher.group(2));
+                        if(regions.containsKey(x + "." + z)){
+                            Region region = regions.get(x + "." + z);
 
-                        region.addRegion3d(matcher.group(1) + "." + y + "." + matcher.group(3));
-                        regions.put(region.getName(), region);
+                            region.addRegion3d(matcher.group(1) + "." + y + "." + matcher.group(3));
+                            regions.put(region.getName(), region);
+                        }
+                    }
+                }
+
+            }catch (FTPListParseException ex) {
+                LogUtils.log("Server doesn't support LIST, switching to legacy mode (only list file names)");
+
+                regions = new Hashtable<>();
+
+                if(!isConnected())
+                    if(!open())
+                        return null;
+
+                if(ftpOptions.getPath() != null){
+                    if(ftpOptions.getPath().length() != 0)
+                        changeDirectory("/" + ftpOptions.getPath());
+                }
+
+                //Get list of region2d and region3d file names at once and close connection
+                changeDirectory("region2d");
+                String[] fileNames = listNames();
+                changeDirectoryUp();
+                changeDirectory("region3d");
+                String[] fileNames2 = listNames();
+                close();
+
+
+                for (String file:
+                        fileNames) {
+                    Matcher matcher = region2dValidator.matcher(file);
+                    if(matcher.find()){
+                        MatchResult result = matcher.toMatchResult();
+                        int x = Integer.parseInt(result.group(1));
+                        int z = Integer.parseInt(result.group(2));
+                        Region region = new Region(x, z);
+                        region.setLegacy(true);
+                        if(region.isValid())
+                            regions.put(region.getName(), region);
+                    }
+                }
+
+                for (String file: fileNames2) {
+                    Matcher matcher = region3dValidator.matcher(file);
+                    if(matcher.find()){
+                        int x = Integer.parseInt(matcher.group(1)) >> 1;
+                        int z = Integer.parseInt(matcher.group(3)) >> 1;
+                        int y = Integer.parseInt(matcher.group(2));
+                        if(regions.containsKey(x + "." + z)){
+                            Region region = regions.get(x + "." + z);
+
+                            region.addRegion3d(matcher.group(1) + "." + y + "." + matcher.group(3));
+                            regions.put(region.getName(), region);
+                        }
                     }
                 }
             }
@@ -159,6 +215,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
 
         }catch (Exception ex){
+            LogUtils.log(ex);
             return null;
         }
     }
