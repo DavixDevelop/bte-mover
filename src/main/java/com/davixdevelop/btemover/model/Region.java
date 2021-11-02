@@ -1,10 +1,7 @@
 package com.davixdevelop.btemover.model;
 
 import com.davixdevelop.btemover.utils.TerraHelper;
-import com.davixdevelop.btemover.utils.UIUtils;
-import net.buildtheearth.terraminusminus.projection.OutOfProjectionBoundsException;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,8 +10,8 @@ import java.util.List;
  * Also stores the wkt (POLYGON) of the region and the point of the polygon in a list
  */
 public class Region {
-    private int x;
-    private int z;
+    private final int x;
+    private final int z;
     private RectanglePoint[] points;
     private String wkt;
     private List<String> region3d;
@@ -27,7 +24,7 @@ public class Region {
     public void setLegacy(boolean legacy) { this.legacy = legacy; }
     public boolean isLegacy() { return legacy; }
 
-    private String name;
+    private final String name;
 
     public String getName() {
         return name;
@@ -62,7 +59,7 @@ public class Region {
     }
     public int getRegion3dCount(){return region3d.size();}
 
-    private boolean _isValid;
+    private final boolean _isValid;
     public boolean isValid() {
         return _isValid;
     }

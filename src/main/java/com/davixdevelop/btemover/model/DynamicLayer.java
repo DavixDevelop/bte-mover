@@ -1,6 +1,5 @@
 package com.davixdevelop.btemover.model;
 
-import org.geotools.data.FeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapLayerEvent;

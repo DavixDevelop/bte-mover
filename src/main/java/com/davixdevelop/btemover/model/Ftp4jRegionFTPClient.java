@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
  * @author DavixDevelop
  */
 public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
-    private FTPOptions ftpOptions;
+    private final FTPOptions ftpOptions;
 
     //trust manager to trust every certificate given by a remote server
     private static TrustManager[] TRUST_MANAGERS = new TrustManager[]{
@@ -70,7 +70,6 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
             }catch (Exception ex){
                 LogUtils.log(ex);
-                sslContext = null;
             }
         }
     }

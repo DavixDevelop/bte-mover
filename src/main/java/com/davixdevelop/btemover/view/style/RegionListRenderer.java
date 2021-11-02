@@ -19,7 +19,7 @@ public class RegionListRenderer extends DefaultListCellRenderer {
     public static final ImageIcon failedIcon = new ImageIcon(RegionListRenderer.class.getResource("failed.png"));
 
 
-    private QueriedRegionLabel regionLabel;
+    private final QueriedRegionLabel regionLabel;
 
     public RegionListRenderer(){
         super();

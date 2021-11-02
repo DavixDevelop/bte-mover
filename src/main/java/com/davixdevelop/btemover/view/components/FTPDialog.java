@@ -8,8 +8,6 @@ import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.regex.MatchResult;
@@ -17,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Represent and and dialog where the user can enter the detils for a ftp connection
+ * Represent and and dialog where the user can enter the details for a ftp connection
  * After the user enters the details, it checks if a connection can be established, closes the dialog,
  * and returns the FTPOptions
  *
@@ -34,26 +32,23 @@ public class FTPDialog extends JDialog {
         return ftpOptions;
     }
 
-    private String serverLabel = "Server (With port):";
-    private RoundedTextField serverTextField;
-    private String userLabel = "Username:";
-    private RoundedTextField userTextField;
-    private String passwordLabel = "Password:";
-    private RoundedPasswordField passwordTextField;
-    private JButton okButton;
-    private RoundedButton testButton;
+    private final RoundedTextField serverTextField;
+    private final RoundedTextField userTextField;
+    private final RoundedPasswordField passwordTextField;
+    private final JButton okButton;
+    private final RoundedButton testButton;
 
     private boolean serverFieldValid, usernameFieldValid, passwordFieldValid = false;
 
-    private JOptionPane optionPane;
+    private final JOptionPane optionPane;
 
     public JOptionPane getOptionPane() {
         return optionPane;
     }
 
-    private UrlValidator urlValidator = new UrlValidator(new String[]{"ftp", "ftps", "sftp", "ftpes"});
+    private final UrlValidator urlValidator = new UrlValidator(new String[]{"ftp", "ftps", "sftp", "ftpes"});
     //private Pattern serverAddressValidator = Pattern.compile("ftp://([^-]*):(\\d+)[/]?(.+)?", Pattern.CASE_INSENSITIVE);
-    private Pattern serverAddressValidator = Pattern.compile("^(ftp|sftp|ftps|ftpes)://([^-]*):(\\d+)[/]?(.+)?", Pattern.CASE_INSENSITIVE);
+    private final Pattern serverAddressValidator = Pattern.compile("^(ftp|sftp|ftps|ftpes)://([^-]*):(\\d+)[/]?(.+)?", Pattern.CASE_INSENSITIVE);
 
     public FTPDialog(Frame _frame, FTPOptions _inOptions){
         super(_frame, true);
@@ -71,7 +66,7 @@ public class FTPDialog extends JDialog {
 
         okButton = new RoundedButton("OK");
         testButton = new RoundedButton("Test");
-        testButton.setAlternative(true);
+        testButton.setAlternative();
 
         ImageIcon paneIcon;
 
@@ -99,10 +94,13 @@ public class FTPDialog extends JDialog {
 
         }
 
-         Object[] content = {serverLabel, serverTextField, userLabel, userTextField, passwordLabel, passwordTextField};
+        String serverLabel = "Server (With port):";
+        String userLabel = "Username:";
+        String passwordLabel = "Password:";
+        Object[] content = {serverLabel, serverTextField, userLabel, userTextField, passwordLabel, passwordTextField};
          Object[] options = {testButton,okButton};
 
-         optionPane = new JOptionPane(content, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_OPTION, paneIcon, options, options[0]);
+         optionPane = new JOptionPane(content, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION, paneIcon, options, options[0]);
          optionPane.setFont(UIVars.RobotoLight.deriveFont(UIVars.primaryFontSize));
          optionPane.setBackground(UIVars.primaryColor);
 
@@ -124,11 +122,10 @@ public class FTPDialog extends JDialog {
          testButton.addActionListener(e -> {
              if(testConnection()){
                  optionPane.setIcon(FTPDialog.successIcon);
-                 UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
              }else{
                  optionPane.setIcon(FTPDialog.failIcon);
-                 UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
              }
+             UIUtils.changeComponentsBackground(optionPane, UIVars.primaryColor);
          });
 
          addWindowListener(new WindowAdapter() {
@@ -220,9 +217,6 @@ public class FTPDialog extends JDialog {
      * @return The success of the test
      */
     private boolean testConnection(){
-        if(RegionFTPClient.testConnection(ftpOptions))
-            return true;
-        else
-            return false;
+        return RegionFTPClient.testConnection(ftpOptions);
     }
 }

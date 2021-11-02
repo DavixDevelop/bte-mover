@@ -1,9 +1,8 @@
 package com.davixdevelop.btemover;
 
 import com.davixdevelop.btemover.logic.Mover_Controller;
-import com.davixdevelop.btemover.model.Mover_Model;
+import com.davixdevelop.btemover.utils.LogUtils;
 import com.davixdevelop.btemover.utils.TerraHelper;
-import com.davixdevelop.btemover.view.Mover_View;
 import com.davixdevelop.btemover.view.UIVars;
 import net.buildtheearth.terraminusminus.generator.EarthGeneratorSettings;
 
@@ -27,11 +26,11 @@ public class Mover_Main {
             System.out.println(com.sun.media.imageioimpl.common.PackageUtil.getSpecificationTitle());
 
         }catch (Exception ex){
-
+            LogUtils.log(ex);
         }
 
         initVariables();
-        Mover_Controller mover_controller = new Mover_Controller();
+        new Mover_Controller();
     }
 
     public static void main(String[] args){
@@ -56,7 +55,7 @@ public class Mover_Main {
             UIVars.RobotoLight = Font.createFont(Font.TRUETYPE_FONT, robotoLight_IS);
 
         }catch (Exception ex){
-
+            LogUtils.log(ex);
         }
     }
 }

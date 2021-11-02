@@ -20,11 +20,11 @@ import java.awt.event.ComponentEvent;
  */
 public class PanPanel extends JLayeredPane {
 
-    private JMapPane jMapPane;
-    private CircleButton exportButton;
-    private CircleButton osmToggleButton;
-    private CircleButton expandButton;
-    private CircleButton toggleShapefileLayer;
+    private final JMapPane jMapPane;
+    private final CircleButton exportButton;
+    private final CircleButton osmToggleButton;
+    private final CircleButton expandButton;
+    private final CircleButton toggleShapefileLayer;
 
     public PanPanel(Mover_Model model){
         setBackground(new Color(0,0,0,0));
@@ -80,8 +80,6 @@ public class PanPanel extends JLayeredPane {
         toolbar.add(toggleShapefileLayer, c);
 
         toolbar.setBorder(BorderFactory.createEmptyBorder(0,0,5,5));
-
-        int circle_button_size = 17 + UIVars.circleButtonInsets[0] + UIVars.circleButtonInsets[2];
 
         jMapPane.setBounds(0, 0, getWidth(), getHeight());
         add(jMapPane, new Integer(0), 1);

@@ -11,9 +11,9 @@ import java.awt.*;
  */
 public class RoundedInsetBorder extends AbstractBorder {
 
-    private int rad;
-    private int[] insets;
-    private Color backgroundColor;
+    private final int rad;
+    private final int[] insets;
+    private final Color backgroundColor;
 
     public RoundedInsetBorder(int _rad, int[] _insets, Color _backgroundColor){
         rad = _rad;

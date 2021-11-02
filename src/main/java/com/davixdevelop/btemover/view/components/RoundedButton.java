@@ -12,10 +12,8 @@ import java.awt.*;
  */
 public class RoundedButton extends JButton {
 
-    private int rad;
+    private final int rad;
     private Color backgroundColor;
-
-    private boolean isAlternative = false;
 
     /**
      * Creates a rounded button with a solid background
@@ -30,8 +28,7 @@ public class RoundedButton extends JButton {
         setMargin( new Insets(UIVars.buttonInsets[0], UIVars.buttonInsets[1], UIVars.buttonInsets[2], UIVars.buttonInsets[3]));
     }
 
-    public void setAlternative(boolean _val){
-        isAlternative = true;
+    public void setAlternative(){
         backgroundColor = UIVars.alternativeBgColor;
     }
 

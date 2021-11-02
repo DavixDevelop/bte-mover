@@ -16,7 +16,7 @@ import java.awt.*;
  * @author DavixDevelop
  */
 public class ScrollWheelPanTool extends AbstractZoomTool {
-    private IMouseObserver observer;
+    private final IMouseObserver observer;
 
     public ScrollWheelPanTool(JMapPane mapPane, IMouseObserver observer) {
         setMapPane(mapPane);

@@ -6,7 +6,7 @@ package com.davixdevelop.btemover.model;
  * @author DavixDevelop
  */
 public class QueriedRegion  {
-    private String name;
+    private final String name;
     private int num3d;
     private int stat;
 
@@ -34,7 +34,7 @@ public class QueriedRegion  {
 
     /**
      * Set's the number of 3d regions
-     * @param _num3d
+     * @param _num3d - The number of 3d regions in the region
      */
     public void setNum3d(int _num3d) {
         num3d = _num3d;

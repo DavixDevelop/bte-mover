@@ -22,35 +22,26 @@ public class TerraHelper {
      * @return An double array of the transformed point [x, y]
      */
     public static double[] toGeo(double x, double y) {
-        //x += 0.5;
-        //y += 0.5;
         try{
-            double[] try1 = projection.toGeo(x, y);
-            return try1;
+            return projection.toGeo(x, y);
         }catch (OutOfProjectionBoundsException ex){
             try{
-                double[] try1 = projection.toGeo(x + offset, y);
-                return try1;
+                return projection.toGeo(x + offset, y);
             }catch (OutOfProjectionBoundsException ex2){
                 try{
-                    double[] try1 = projection.toGeo(x - offset, y);
-                    return try1;
+                    return projection.toGeo(x - offset, y);
                 }catch (OutOfProjectionBoundsException ex3){
                     try{
-                        double[] try1 = projection.toGeo(x, y + offset);
-                        return try1;
+                        return projection.toGeo(x, y + offset);
                     }catch (OutOfProjectionBoundsException ex4){
                         try{
-                            double[] try1 = projection.toGeo(x, y - offset);
-                            return try1;
+                            return projection.toGeo(x, y - offset);
                         }catch (OutOfProjectionBoundsException ex5){
                             try{
-                                double[] try1 = projection.toGeo(x + offset, y + offset);
-                                return try1;
+                                return projection.toGeo(x + offset, y + offset);
                             }catch (OutOfProjectionBoundsException ex6){
                                 try{
-                                    double[] try1 = projection.toGeo(x - offset, y - offset);
-                                    return try1;
+                                    return projection.toGeo(x - offset, y - offset);
                                 }catch (OutOfProjectionBoundsException ex7){
                                     LogUtils.log(ex7);
                                     return null;

@@ -6,10 +6,16 @@ BTE Mover is a java application that moves/copies  2d/3d regions from a Minecraf
 It's meant to be used on a world save which files can be accessed though ftp.
 In addition to ftp, the application also works with sftp, ftps and ftpes.
 
+### Features:
+ - Preview to be transferred/shared regions
+ - View map of built regions on server
+ - Transfer regions
+ - Export map to image
+
 ### How to use
 You can either download the jar file from the latest release, or you can build the project yourself. You can read more about that [here](https://github.com/DavixDevelop/bte-mover/wiki/Build-Instructions).
 To open the application you must have Java JRE installed.<br>
-It's recommend to run the application with the command `java -jar bte-mover-1.2-15.jar` inside a terminal, ex inside the command line, from the folder
+It's recommend to run the application with the command `java -jar bte-mover-1.3-20.jar` inside a terminal (ex. command line), from the folder
 where the .jar file is located. This way, if any exceptions occur, they will be printed out to the terminal.
 
 <img src="https://github.com/DavixDevelop/bte-mover/raw/master/docs/images/how_to_use.png" />
@@ -21,7 +27,10 @@ It's recommended that the shapefile uses the WGS84 projection, but it can use ot
 Once you've acquired such a shapefile, you can import it with the `Import` button. 
 
 #### Setup FTP options
-After that you must set the ftp options for the source and target server, by using the `Source FTP` and `Target FTP` buttons respectively. The username and password text fields are self-explanatory.
+After that you must set the ftp options for the source and target server, by using the `Source FTP` and `Target FTP` buttons respectively.<br>
+> **If you wish to only view a map of built regions on the source server only set the Source FTP options.**
+
+The username and password text fields are self-explanatory.
 For the server text field, you must be sure that the url is in the following format:
 
 `(ftp|ftps|sftp|ftpes)://hostname:port(/path)`
@@ -34,11 +43,11 @@ If the entered information is correct we can than test the connection by either 
 Pressing the `OK` button performs the same connection test and closes the dialog if the connection was a success.
 
 #### LIST Command
-The application uses the LIST command via the FTP protocol to get the list of regions. If the your FTP server doesn't properly support this command (it uses an unknown list format that can't be parsed),
-the application switches to the LEGACY mode. In this mode the application only gets a list of region names from the FTP server. This means that 3d regions that are less than 16384 bytes big get will also get included in the preview process, and only get
-skipped in the transfer process. This means, that the application first has to download the 3d region, and if it's size is less than 16384 bytes big, it gets skipped.
+The application uses the LIST command via the FTP protocol to get the list of regions, ex. the region name and size. If your FTP server doesn't properly support this command (it uses an unknown list format that can't be parsed),
+the application switches to the LEGACY mode. In this mode, the application only gets a list of region names from the FTP server. This means that 3d regions that are less than 16384 bytes big get will also get included in the preview process, and only get
+skipped in the transfer process. This means, that the application first has to download the 3d region, and if It's size is less than 16384 bytes big, it gets skipped.
 This greatly increases the transfer process time, so It's advisable to first check if your FTP Server support's the LIST response formats listed [here](http://www.sauronsoftware.it/projects/ftp4j/manual.php#12).
-**If your FTP Server doesn't support any of the LIST response formats listed [here](http://www.sauronsoftware.it/projects/ftp4j/manual.php#12), the application will still work, but like mentioned it will switch to LEGACY mode, greatly increasing the transfer time.**
+> **If your FTP Server doesn't support any of the LIST response formats listed [here](http://www.sauronsoftware.it/projects/ftp4j/manual.php#12), the application will still work, but like mentioned it will switch to LEGACY mode, greatly increasing the transfer time.**
 
 #### Preview transfers
 Next, to preview the regions to be transferred, the source/target regions, and the shared regions (regions that are on both the source and target server), we press the `Preview` button.
@@ -48,7 +57,7 @@ If any error occurs during this process a message dialog gets displayed with the
 Once the process finishes, and the spinner hides, that map displays the aforementioned region and automatically zoom's to the to be transferred regions, if it found any.
 
 #### Map
-The map enables you to zoom and pan around with a mouse. You can also right-click to copy the geographic coordinates. On the right side of the map is also a toolbar that enables you to export the current view to an image (the `Save icon`, this also creates an auxiliary file, so the exported image becomes georeferenced and can be open in a GIS Software), display the `OSM` layer, automatically zoom back to the regions, and toggle the shapefile's layer visibility.
+The map enables you to zoom and pan around with a mouse. You can also right-click to copy the geographic coordinates. On the right side of the map is also a toolbar that enables you to export the current view to an image (the `Save icon`, this also creates an auxiliary file, so the exported image becomes geo-referenced and can be open in a GIS Software), display the `OSM` layer, automatically zoom back to the regions, and toggle the shapefile's layer visibility.
 #### Map legend
 Under the map we can also find the legend, that indicates each region type, with the count of regions in that type. Hovering over the label of each type shows the total amount of 3D regions for that type. Clicking on the count toggle's the layer's visibility.
 #### Query list
@@ -68,7 +77,7 @@ If for any reason an error occurs during the transfers, the whole process **stop
 Once the transfer process finishes, the application display's on the bottom how long it took to transfer the files.
 
 ###Future plans
-The application is 99% finished, therefore the only thing that I intend to improve a bit is the look of the UI, like the scroller and more detailed notifying of errors  back to the user.
+The application is 99% finished, therefore the only thing that I intend to improve a bit is the look of the UI, like the scroller, more detailed notifying of errors back to the user and small improvements.
 
 #### Need help or have a question?
 You can contact me on Discord, under `davixdevelop#3914`

@@ -6,8 +6,6 @@ import com.davixdevelop.btemover.view.UIVars;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
@@ -21,25 +19,22 @@ import java.util.stream.Stream;
  */
 public class MessageDialog extends JDialog {
 
-    private RoundedButton okButton;
-    private JOptionPane optionPane;
+    private final JOptionPane optionPane;
 
-    private JPanel logPanel;
-    private RoundedButton expandButton;
-    private JScrollPane logScroll;
+    private final JScrollPane logScroll;
 
     public MessageDialog(Frame _frame, String[] message){
         super(_frame, true);
         setPreferredSize(new Dimension(390, 170));
 
-        okButton = new RoundedButton("OK");
-        okButton.setAlternative(true);
+        RoundedButton okButton = new RoundedButton("OK");
+        okButton.setAlternative();
 
-        logPanel = new JPanel();
+        JPanel logPanel = new JPanel();
         logPanel.setLayout(new GridBagLayout());
 
 
-        expandButton = new RoundedButton("Show log");
+        RoundedButton expandButton = new RoundedButton("Show log");
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
@@ -78,7 +73,7 @@ public class MessageDialog extends JDialog {
         logPanel.add(logScroll, c);
 
 
-        Object[] content = null;
+        Object[] content;
         if(message.length == 2){
             JLabel headerLabel = new JLabel(message[0], JLabel.CENTER);
             headerLabel.setFont(UIVars.RobotoBold.deriveFont(UIVars.primaryFontSize));

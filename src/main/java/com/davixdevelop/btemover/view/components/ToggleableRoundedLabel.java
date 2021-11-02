@@ -1,16 +1,13 @@
 package com.davixdevelop.btemover.view.components;
 
-import com.davixdevelop.btemover.view.UIVars;
 import com.davixdevelop.btemover.view.style.RoundedInsetBorder;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class ToggleableRoundedLabel extends JLabel {
-    private int radius;
-    private Color backgroundColor;
+    private final int radius;
+    private final Color backgroundColor;
     private boolean _isToggled;
     public boolean isToggled() {
         return _isToggled;

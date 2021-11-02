@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class Mover_Model implements IMoverModel, IMouseObserver {
 
-    private IMoverModelObserver observer;
+    private final IMoverModelObserver observer;
 
     private String shapefilePath = "";
     private String shapefileName = null;
@@ -82,7 +82,6 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     }
 
     public DynamicLayer shapefileLayer;
-    private DefaultFeatureCollection shapefileFeatures;
     private Integer shapefileLayerStatus = 0;
 
     /**
@@ -103,33 +102,27 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
     private TileLayer osmTileLayer;
     private boolean osmLayerToggled;
-    private TileService osmTileService;
 
     private DynamicLayer sourceRegionsLayer;
     public DynamicLayer getSourceRegionsLayer() { return sourceRegionsLayer; }
     private DefaultFeatureCollection sourceFeatures;
     private Hashtable<String,Region> sourceRegions;
-    public Hashtable<String,Region> getSourceRegions() {
-        return sourceRegions;
-    }
     public Integer getSourceRegionsCount(){return sourceRegions.size();}
-    public int getSourceRegions3DCount() {return sourceRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
+    public int getSourceRegions3DCount() {return sourceRegions.values().stream().mapToInt(Region::getRegion3dCount).sum();}
 
     private DynamicLayer targetRegionsLayer;
     public DynamicLayer getTargetRegionsLayer() { return targetRegionsLayer; }
     private DefaultFeatureCollection targetFeatures;
     private Hashtable<String,Region> targetRegions;
-    public Hashtable<String,Region> getTargetRegions() { return targetRegions; }
     public Integer getTargetRegionsCount(){return targetRegions.size();}
-    public int getTargetRegions3DCount() {return targetRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
+    public int getTargetRegions3DCount() {return targetRegions.values().stream().mapToInt(Region::getRegion3dCount).sum();}
 
     private DynamicLayer sharedRegionsLayer;
     public DynamicLayer getSharedRegionsLayer() { return sharedRegionsLayer; }
     private DefaultFeatureCollection sharedFeatures;
     private Hashtable<String,Region> sharedRegions;
-    public Hashtable<String,Region> getSharedRegions() { return sharedRegions; }
     public Integer getSharedRegionsCount(){return sharedRegions.size();}
-    public int getSharedRegions3DCount() {return sharedRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
+    public int getSharedRegions3DCount() {return sharedRegions.values().stream().mapToInt(Region::getRegion3dCount).sum();}
 
     private DynamicLayer transferRegionsLayer;
     public DynamicLayer getTransferRegionsLayer() {
@@ -140,7 +133,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
     public Hashtable<String,Region> getTransferRegions() { return transferRegions; }
     public Integer getTransferRegionsCount(){return transferRegions.size();}
-    public int getTransferRegions3DCount() {return transferRegions.values().stream().mapToInt(f -> f.getRegion3dCount()).sum();}
+    public int getTransferRegions3DCount() {return transferRegions.values().stream().mapToInt(Region::getRegion3dCount).sum();}
 
     public List<Geometry> shapefileGeometry;
 
@@ -149,14 +142,14 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
         return mapContent;
     }
 
-    private DefaultListModel<QueriedRegion> queryModel;
+    private final DefaultListModel<QueriedRegion> queryModel;
 
     public DefaultListModel<QueriedRegion> getQueryModel() {
         return queryModel;
     }
 
     //Queue to save regions to be downloaded
-    private ConcurrentLinkedQueue<Region> downloadQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Region> downloadQueue = new ConcurrentLinkedQueue<>();
 
     /*private String tempFolder;
     private String temp2dFolder;
@@ -181,7 +174,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
         try {
 
-            osmTileService =  new OSMService("OSM", "http://tile.openstreetmap.org/");
+            TileService osmTileService = new OSMService("OSM", "http://tile.openstreetmap.org/");
             osmTileLayer = new TileLayer(osmTileService);
             osmTileLayer.setVisible(false);
 
@@ -255,7 +248,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                 SimpleFeatureIterator iterator = shapefile.getFeatureSource().getFeatures().features();
                 shapefileGeometry = null;
 
-                shapefileFeatures = new DefaultFeatureCollection();
+                DefaultFeatureCollection shapefileFeatures = new DefaultFeatureCollection();
 
                 SimpleFeatureType schema = shapefile.getSchema();
                 //Get shapefile crs
@@ -268,10 +261,10 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
                 //Set transform from shapefile crs to wgs84 if the shapefile crs is different from WGS84
                 MathTransform transform = null;
-                if(!Objects.equals(sourceCRS.getName().getCode(), DefaultGeographicCRS.WGS84.getName().getCode()))
-                    transform = CRS.findMathTransform(sourceCRS, DefaultGeographicCRS.WGS84, true);
+                if(sourceCRS != null)
+                    if(!Objects.equals(sourceCRS.getName().getCode(), DefaultGeographicCRS.WGS84.getName().getCode()))
+                        transform = CRS.findMathTransform(sourceCRS, DefaultGeographicCRS.WGS84, true);
 
-                shapefileFeatures.clear();
                 shapefileGeometry = new ArrayList<>();
 
                 try{
@@ -350,9 +343,9 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     public boolean polygonIntersectsWithShapefile(Polygon polygon){
         boolean intersects = false;
         //Check if the region polygon intersects with the shapefile geometry
-        for(int i = 0; i < shapefileGeometry.size(); i++){
-            intersects = shapefileGeometry.get(i).intersects(polygon);
-            if(intersects)
+        for (Geometry geometry : shapefileGeometry) {
+            intersects = geometry.intersects(polygon);
+            if (intersects)
                 break;
         }
         return intersects;
@@ -428,12 +421,25 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
     /**
      * Notifies to observer to which layer to zoom to, depending on the count of each layers features.
-     * It does this by checking the count of each layer and choosing whihc layer to zoom
+     * It does this by checking the count of each layer and choosing which layer to zoom
      * to in the following order:
      * transfer layer -> source layer -> shapefile layer
      */
     public void zoomToLayer(){
         if(shapefileLayerStatus == 2){
+            if(TargetFTP == null) {
+                if(getSharedRegionsCount() == 0)
+                    if(getSourceRegionsCount() > 0)
+                        observer.zoomToLayers(1);
+                    else
+                        observer.zoomToLayers(0);
+                else{
+                    observer.zoomToLayers(4);
+                }
+
+                return;
+            }
+
             if(transferFeatures.size() == 0){
                 if(sourceRegions.size() == 0){
                     observer.zoomToLayers(0); //Zoom to shapefile layer
@@ -455,7 +461,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     public void resetDefaultCollection(DefaultFeatureCollection featureCollection){
         if(featureCollection.size() > 0){
             Iterator iterator = featureCollection.iterator();
-            Object firstElement = iterator.next();
+            iterator.next();
             iterator.remove();
 
             if(featureCollection.size() > 0)
@@ -464,7 +470,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
             SimpleFeatureBuilder builder = new SimpleFeatureBuilder(TYPE);
             featureCollection.add(builder.buildFeature(null));
             Iterator iterator = featureCollection.iterator();
-            Object firstElement = iterator.next();
+            iterator.next();
             iterator.remove();
         }
     }
@@ -478,7 +484,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
      * - Calculates the region to be transferred, if the source region intersects with the input shapefile
      * - Set's the download concurrent query and the JList model query
      * - Set's the layer for each type of region
-     * - Notifies the layer of eahc
+     * - Notifies the observer of the preview result
      * After it has finished with the task's it notifies the model observer of the success of each task
      */
     @Override
@@ -517,17 +523,17 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
             //Shapefile layer was already added before, and new shapefile was added.
             //Ask the user if they want to get the list of regions from the servers again
             int ans = observer.questionMessage("New shapefile added", "Fetch regions from server again?");
-            getRegionsFromRemote = (ans == 0) ? true : false;
+            getRegionsFromRemote = ans == 0;
 
         }else if(prevShapefileLayerStatus == 3 && shapefileLayerStatus == 1){
             //Shapefile layer was already added before, and same shapefile was added.
             //Ask the user if they want to get the list of regions from the servers again
             int ans = observer.questionMessage("Shapefile changed", "Fetch regions from server again?");
-            getRegionsFromRemote = (ans == 0) ? true : false;
+            getRegionsFromRemote = ans == 0;
         }else if(shapefileLayerStatus == 2 && prevShapefileLayerStatus == 2){
             //Nothing changed, ask the user if they want to get the list of regions from the servers again
             int ans = observer.questionMessage("No changes detected in shapefile", "Fetch regions from server again?");
-            getRegionsFromRemote = (ans == 0) ? true : false;
+            getRegionsFromRemote = ans == 0;
         }
 
         if(getRegionsFromRemote) {
@@ -549,24 +555,29 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                 sourceFeatures.clear();
             }
 
-            Hashtable<String, Region> _targetRegions = getRegionsList(TargetFTP);
-            if (_targetRegions == null) {
-                //3 - Error connecting to Target FTP
-                observer.previewTransfers(3);
-                return;
+            if(TargetFTP != null) {
+
+                Hashtable<String, Region> _targetRegions = getRegionsList(TargetFTP);
+                if (_targetRegions == null) {
+                    //3 - Error connecting to Target FTP
+                    observer.previewTransfers(3);
+                    return;
+                }
+
+
+                if (_targetRegions.size() > 0) {
+                    targetRegions = _targetRegions;
+                    targetFeatures.addAll(getRegionsCollection(targetRegions));
+                } else {
+                    targetRegions = new Hashtable<>();
+                }
             }
-
-
-            if (_targetRegions.size() > 0) {
-                targetRegions = _targetRegions;
-                targetFeatures.addAll(getRegionsCollection(targetRegions));
-            }else{
+            else
                 targetRegions = new Hashtable<>();
-                transferFeatures.clear();
-            }
         }else{
             sourceFeatures.addAll(getRegionsCollection(sourceRegions));
-            targetFeatures.addAll(getRegionsCollection(targetRegions));
+            if(targetRegions != null)
+                targetFeatures.addAll(getRegionsCollection(targetRegions));
         }
 
         sharedRegions = new Hashtable<>();
@@ -574,63 +585,88 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
         if(sourceRegions.size() > 0) {
             GeometryFactory geometryFactory = new GeometryFactory();
-            for (Map.Entry<String, Region> entry : sourceRegions.entrySet()) {
-                //Check if source region is already present on the target
-                if(targetRegions.containsKey(entry.getKey())){
-                    //if it is, add it to the shared layer
-                    sharedRegions.put(entry.getKey(), entry.getValue());
+            //If TargetFTP is not null compare the source and target regions as usual
+            //Else only compare the source regions with the shapefile
+            if(TargetFTP != null) {
+                for (Map.Entry<String, Region> entry : sourceRegions.entrySet()) {
+                    //Check if source region is already present on the target
+                    if (targetRegions.containsKey(entry.getKey())) {
+                        //if it is, add it to the shared layer
+                        sharedRegions.put(entry.getKey(), entry.getValue());
 
 
+                        //Check if target region contains the same 3d regions as the source region
+                        if (!targetRegions.get(entry.getKey()).getRegion3d().containsAll(entry.getValue().getRegion3d())) {
+                            Region sourceRegion = entry.getValue();
+                            RectanglePoint[] rectanglePoints = sourceRegion.getPoints();
 
-                    //Check if target region contains the same 3d regions as the source region
-                    if(!targetRegions.get(entry.getKey()).getRegion3d().containsAll(entry.getValue().getRegion3d())){
-                        Region sourceRegion = entry.getValue();
-                        RectanglePoint[] rectanglePoints = sourceRegion.getPoints();
+                            Polygon regionPoly = geometryFactory.createPolygon(new Coordinate[]{
+                                    new Coordinate(rectanglePoints[0].x, rectanglePoints[0].y),
+                                    new Coordinate(rectanglePoints[1].x, rectanglePoints[1].y),
+                                    new Coordinate(rectanglePoints[2].x, rectanglePoints[2].y),
+                                    new Coordinate(rectanglePoints[3].x, rectanglePoints[3].y),
+                                    new Coordinate(rectanglePoints[0].x, rectanglePoints[0].y)
+                            });
 
-                        Polygon regionPoly = geometryFactory.createPolygon(new Coordinate[]{
-                                new Coordinate(rectanglePoints[0].x,rectanglePoints[0].y),
-                                new Coordinate(rectanglePoints[1].x,rectanglePoints[1].y),
-                                new Coordinate(rectanglePoints[2].x,rectanglePoints[2].y),
-                                new Coordinate(rectanglePoints[3].x,rectanglePoints[3].y),
-                                new Coordinate(rectanglePoints[0].x,rectanglePoints[0].y)
-                        });
+                            //if it doesn't, check first if the region intersects with the shapefile
+                            if (polygonIntersectsWithShapefile(regionPoly)) {
+                                //If it does, create new region from the source region with the missing region 3d's and add it to the queue
+                                Region targetRegion = targetRegions.get(entry.getKey());
 
-                        //if it doesn't, check first if the region intersects with the shapefile
-                        if(polygonIntersectsWithShapefile(regionPoly)) {
-                            //If it does, create new region from the source region with the missing region 3d's and add it to the queue
-                            Region targetRegion = targetRegions.get(entry.getKey());
-
-                            List<String> missing3d = new ArrayList<>(sourceRegion.getRegion3d());
-                            missing3d.removeAll(targetRegion.getRegion3d());
-                            targetRegion.setRegion3d(missing3d);
-                            targetRegion.setTransfer2d(false);
-                            transferRegions.put(entry.getKey(), targetRegion);
+                                List<String> missing3d = new ArrayList<>(sourceRegion.getRegion3d());
+                                missing3d.removeAll(targetRegion.getRegion3d());
+                                targetRegion.setRegion3d(missing3d);
+                                targetRegion.setTransfer2d(false);
+                                transferRegions.put(entry.getKey(), targetRegion);
+                            }
                         }
-                    }
-
-                    //Remove region from source and target layer to prevent overlay
-                    sourceFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
-                    targetFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
-                }else{
-                    Region sourceRegion = entry.getValue();
-                    RectanglePoint[] rectanglePoints = sourceRegion.getPoints();
-
-                    Polygon regionPoly = geometryFactory.createPolygon(new Coordinate[]{
-                            new Coordinate(rectanglePoints[0].x,rectanglePoints[0].y),
-                            new Coordinate(rectanglePoints[1].x,rectanglePoints[1].y),
-                            new Coordinate(rectanglePoints[2].x,rectanglePoints[2].y),
-                            new Coordinate(rectanglePoints[3].x,rectanglePoints[3].y),
-                            new Coordinate(rectanglePoints[0].x,rectanglePoints[0].y)
-                    });
-
-                    //Check if the region polygon intersects with the shapefile geometry
-                    if(polygonIntersectsWithShapefile(regionPoly)) {
-                        //If it does, add region to transfer queue
-                        transferRegions.put(entry.getKey(), sourceRegion);
 
                         //Remove region from source and target layer to prevent overlay
                         sourceFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
                         targetFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
+                    } else {
+                        Region sourceRegion = entry.getValue();
+                        RectanglePoint[] rectanglePoints = sourceRegion.getPoints();
+
+                        Polygon regionPoly = geometryFactory.createPolygon(new Coordinate[]{
+                                new Coordinate(rectanglePoints[0].x, rectanglePoints[0].y),
+                                new Coordinate(rectanglePoints[1].x, rectanglePoints[1].y),
+                                new Coordinate(rectanglePoints[2].x, rectanglePoints[2].y),
+                                new Coordinate(rectanglePoints[3].x, rectanglePoints[3].y),
+                                new Coordinate(rectanglePoints[0].x, rectanglePoints[0].y)
+                        });
+
+                        //Check if the region polygon intersects with the shapefile geometry
+                        if (polygonIntersectsWithShapefile(regionPoly)) {
+                            //If it does, add region to transfer queue
+                            transferRegions.put(entry.getKey(), sourceRegion);
+
+                            //Remove region from source and target layer to prevent overlay
+                            sourceFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
+                            targetFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
+                        }
+                    }
+                }
+            }else{
+                for(Map.Entry<String, Region> entry : sourceRegions.entrySet()){
+                    Region sourceRegion = entry.getValue();
+                    RectanglePoint[] rectanglePoints = sourceRegion.getPoints();
+
+                    Polygon regionPoly = geometryFactory.createPolygon(new Coordinate[]{
+                            new Coordinate(rectanglePoints[0].x, rectanglePoints[0].y),
+                            new Coordinate(rectanglePoints[1].x, rectanglePoints[1].y),
+                            new Coordinate(rectanglePoints[2].x, rectanglePoints[2].y),
+                            new Coordinate(rectanglePoints[3].x, rectanglePoints[3].y),
+                            new Coordinate(rectanglePoints[0].x, rectanglePoints[0].y)
+                    });
+
+                    //Check if the region polygon intersects with the shapefile geometry
+                    if (polygonIntersectsWithShapefile(regionPoly)) {
+                        //If it does, add region to transfer queue
+                        sharedRegions.put(entry.getKey(), sourceRegion);
+
+                        //Remove region from source layer to prevent overlay
+                        sourceFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
                     }
                 }
             }
@@ -638,6 +674,13 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
         if(sharedRegions.size() > 0){
             sharedFeatures.addAll(getRegionsCollection(sharedRegions));
+        }
+
+        //If TargetFTP is null (Source regions map mode), notify observer of no transfers in query (act like TargetFTP returned no regions)
+        //and return
+        if(TargetFTP == null) {
+            observer.previewTransfers(0);
+            return;
         }
 
         if(transferRegions.size() >0) {
@@ -866,7 +909,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     }
      */
 
-    private int threadCount = 2;
+    private final int threadCount = 2;
     public int getThreadCount() {
         return threadCount;
     }
@@ -878,7 +921,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     }
 
     /**
-     * The new main method that get's the region from it download query and uploads it's to the target server,
+     * The new main method that gets the region from it download query and uploads it's to the target server,
      * effectively transferring it, but note that it doesn't delete it from the source server.
      * Both download and upload are done in one the same thread, but multiple threads can be run at one. While it's transferring the region, it also
      * simultaneously updates the model query of the JList and notifies the model observer of each change/progress
@@ -924,22 +967,22 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                                             observer.updateProgress(-1);
 
                                             List<String> region3DList = region.getRegion3d();
-                                            for(int d = 0; d < region3DList.size(); d++){
+                                            for (String s : region3DList) {
                                                 //Set icon in query item to downloading
                                                 observer.setQueryItemIcon(region, 1);
 
                                                 //Get the region3d content
-                                                regionContent = sourceFTPClient.get3DRegion(region3DList.get(d));
-                                                if(regionContent != null){
+                                                regionContent = sourceFTPClient.get3DRegion(s);
+                                                if (regionContent != null) {
 
                                                     //Skip 3d region (region is legacy) if It's size is less than 16384 bytes (contains only air)
-                                                    if((region.isLegacy()) ? regionContent.length > 16384 : true){
+                                                    if ((region.isLegacy()) ? regionContent.length > 16384 : true) {
 
                                                         //Set icon in query item to uploading
-                                                        observer.setQueryItemIcon(region,2);
+                                                        observer.setQueryItemIcon(region, 2);
 
                                                         //Put the region3d content in the target remote 3d region
-                                                        if(targetFTPClient.put3DRegion(regionContent, region3DList.get(d))){
+                                                        if (targetFTPClient.put3DRegion(regionContent, s)) {
                                                             //Increase region3d count and update ETR
                                                             observer.updateProgress(-2);
 
@@ -948,9 +991,9 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                                                             observer.setQueryItemCount(region, total3DCount);
 
                                                         }
-                                                    }else{
+                                                    } else {
                                                         //Set icon in query item to uploading
-                                                        observer.setQueryItemIcon(region,2);
+                                                        observer.setQueryItemIcon(region, 2);
                                                         //Decrease total region3d count and update ETR
                                                         observer.updateProgress(-4);
                                                         //Decrease the 3d region count in the query item
@@ -1014,7 +1057,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                     observer.showMessage(new String[]{"Error while transferring", ex.toString()});
                 }
 
-                observer.transferDone(exitThread);;
+                observer.transferDone(exitThread);
             };
 
             Thread getPutThread = new Thread(getPutRunnable);
@@ -1024,7 +1067,9 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                 try{
                     //Start another thread with a delay
                     Thread.sleep(20);
-                }catch (Exception ex){}
+                } catch (InterruptedException e) {
+                    LogUtils.log(e);
+                }
         }
     }
 

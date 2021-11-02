@@ -1,8 +1,5 @@
 package com.davixdevelop.btemover.utils;
 
-import com.davixdevelop.btemover.model.RectanglePoint;
-import com.davixdevelop.btemover.view.UIVars;
-
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -24,7 +21,7 @@ public class UIUtils {
     /**
      * Copied from:
      * https://stackoverflow.com/questions/3953208/value-change-listener-to-jtextfield
-     * @autor Boann (https://stackoverflow.com/users/964243/boann)
+     * @author Boann (https://stackoverflow.com/users/964243/boann)
      *
      * Installs a listener to receive notification when the text of any
      * {@code JTextComponent} is changed. Internally, it installs a
@@ -34,7 +31,7 @@ public class UIUtils {
      *
      * @param textComponent any text component, such as a {@link JTextField}
      *        or {@link JTextArea}
-     * @param change a listener to receieve {@link ChangeEvent}s
+     * @param change a listener to receive {@link ChangeEvent}s
      *        when the text is changed; the source object for the events
      *        will be the text component
      * @throws NullPointerException if either parameter is null
@@ -89,7 +86,7 @@ public class UIUtils {
      public static void changeComponentsBackground(Container container, Color backgroundColor){
          Component[] components = container.getComponents();
          for (int i = 0; i < components.length; i++) {
-             if(components[i].getClass().getName() == "javax.swing.JPanel"){
+             if(Objects.equals(components[i].getClass().getName(), "javax.swing.JPanel")){
                  components[i].setBackground(backgroundColor);
                  changeComponentsBackground((Container) components[i], backgroundColor);
              }

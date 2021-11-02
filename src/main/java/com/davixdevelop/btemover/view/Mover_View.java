@@ -3,12 +3,10 @@ package com.davixdevelop.btemover.view;
 import com.davixdevelop.btemover.model.Mover_Model;
 import com.davixdevelop.btemover.view.components.*;
 import com.davixdevelop.btemover.view.style.RegionListRenderer;
-import com.davixdevelop.btemover.view.style.RoundedInsetBorder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +20,6 @@ public class Mover_View extends JFrame {
     public static final ImageIcon ICON_512 = new ImageIcon(Mover_View.class.getResource("icon.png"));
 
 
-    private final JPanel previewPanel;
     private final JButton transferButton;
     private final JButton previewButton;
     private final JButton importButton;
@@ -30,12 +27,10 @@ public class Mover_View extends JFrame {
     private final JButton targetFTPButton;
     private final JTextField textField_shapeFile;
     private final JLabel sourceFTP_label;
-    private final JPanel ftpOpt;
     private final JLabel targetFTP_label;
     private final PanPanel mapPanel;
     private final JLabel sourceLegendLabel;
     private final ToggleableRoundedLabel onSourceCountLabel;
-    private final JLabel targetLegendLabel;
     private final ToggleableRoundedLabel onTargetCountLabel;
     private final JLabel sharedLegendLabel;
     private final ToggleableRoundedLabel onSharedCountLabel;
@@ -94,9 +89,6 @@ public class Mover_View extends JFrame {
 
         GridBagConstraints c = new GridBagConstraints();
 
-        //panel.setBorder(BorderFactory.createEmptyBorder(30, 30, 10, 30));
-        //panel.setLayout(new GridBagLayout());
-
         JLabel importLabel = new JLabel("Import Shapefile");
         importLabel.setFont(UIVars.RobotoLight.deriveFont(UIVars.primaryFontSize));
         c.gridx = 0;
@@ -128,7 +120,7 @@ public class Mover_View extends JFrame {
         c.insets = new Insets(5, 5,5,0);
         optionPanel.add(importButton, c);
 
-        ftpOpt = new JPanel();
+        JPanel ftpOpt = new JPanel();
         ftpOpt.setBackground(UIVars.transparentColor);
         ftpOpt.setOpaque(false);
         ftpOpt.setLayout(new GridBagLayout());
@@ -190,14 +182,14 @@ public class Mover_View extends JFrame {
         c.insets = new Insets(20, 20, 0, 20);
         panel.add(optionPanel, c);
 
-        previewPanel = new JPanel(){
+        JPanel previewPanel = new JPanel() {
             @Override
-            protected void paintComponent(Graphics g){
+            protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D)g;
+                Graphics2D g2 = (Graphics2D) g;
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(UIVars.primaryBg);
-                g2.fillRoundRect(0,0,getWidth() - 1, getHeight() - 1, 10, 10);
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
             }
         };
         previewPanel.setLayout(new GridBagLayout());
@@ -244,9 +236,6 @@ public class Mover_View extends JFrame {
         //c.anchor = GridBagConstraints.LAST_LINE_END;
         c.insets = new Insets(0, 0, 10, 0);
         JScrollPane queryScrollPane = new JScrollPane(queryList);
-        //queryScrollPane.getViewport().getView().setBackground(UIVars.primaryBg);
-        //queryScrollPane.setOpaque(false);
-        //queryScrollPane.getViewport().setOpaque(false);
         queryPanel.add(queryScrollPane, c);
 
         c = new GridBagConstraints();
@@ -284,7 +273,7 @@ public class Mover_View extends JFrame {
         onTargetCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
         legendPanel.add(onTargetCountLabel);
 
-        targetLegendLabel = new JLabel("Target");
+        JLabel targetLegendLabel = new JLabel("Target");
         targetLegendLabel.setFont(UIVars.RobotoBold.deriveFont(14f));
         targetLegendLabel.setForeground(Color.white);
         legendPanel.add(targetLegendLabel);
@@ -340,26 +329,12 @@ public class Mover_View extends JFrame {
 
         previewButton = new RoundedButton("Preview");
         previewButton.setEnabled(false);
-        /*
-        c = new GridBagConstraints();
-        c.gridx = 0;
-        c.gridy = 2;
-        c.weightx = 1.0;
-        c.anchor = GridBagConstraints.LAST_LINE_END;
-        c.insets = new Insets(5, 0, 10, 0);*/
         actionPanel.add(previewButton);
 
 
 
         transferButton = new RoundedButton("Transfer");
         transferButton.setEnabled(false);
-        /*
-        c = new GridBagConstraints();
-        c.gridx = 1;
-        c.gridy = 2;
-        c.anchor = GridBagConstraints.LAST_LINE_END;
-        c.insets = new Insets(5, 5, 10, 20);
-        */
 
         actionPanel.add(Box.createRigidArea(new Dimension(5, 0)));
         actionPanel.add(transferButton);
@@ -404,7 +379,7 @@ public class Mover_View extends JFrame {
         importButton.addActionListener(action);
     }
     public void initChooseSourceFTPListener(ActionListener action) {sourceFTPButton.addActionListener(action);}
-    public void initCoooseTargetFTPListener(ActionListener action){targetFTPButton.addActionListener(action);}
+    public void initChooseTargetFTPListener(ActionListener action){targetFTPButton.addActionListener(action);}
     public void initPreviewListener(ActionListener action){previewButton.addActionListener(action);}
     public void initTransferListener(ActionListener action){ transferButton.addActionListener(action);}
     public void initExportListener(ActionListener action){mapPanel.getExportButton().addActionListener(action);}

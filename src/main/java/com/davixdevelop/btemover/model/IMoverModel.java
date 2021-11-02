@@ -6,6 +6,6 @@ package com.davixdevelop.btemover.model;
  * @author DavixDevelop
  */
 public interface IMoverModel {
-    public void previewTransfers();
-    public void transferRegions();
+    void previewTransfers();
+    void transferRegions();
 }

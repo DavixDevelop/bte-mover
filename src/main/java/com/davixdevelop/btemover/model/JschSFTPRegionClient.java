@@ -20,7 +20,7 @@ import java.util.regex.Matcher;
  * @author DavixDevelop
  */
 public class JschSFTPRegionClient implements IRegionFTPClient {
-    private FTPOptions ftpOptions;
+    private final FTPOptions ftpOptions;
     private Session session;
     private ChannelSftp channelSftp;
     private boolean isValidSession;
@@ -54,13 +54,12 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
     }
 
     /**
-     * Set's the session if it hasn't been set yet, connect's the session and the sftp channel,
+     * Set's the session if it hasn't been set yet, connects the session and the sftp channel,
      * therefore opening an connection to the sftp server
      * @return True or False depending if the connection was established
-     * @throws Exception If an error occurred while connection to the server
      */
     @Override
-    public boolean open() throws Exception {
+    public boolean open() {
         if(!isValidSession)
             setSession();
 
@@ -85,11 +84,10 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
     /**
      * Disconnects both the session and sftp channel, therefore
-     * closeing the connection between the server and client
-     * @throws Exception If an error occurred while disconnecting to the server
+     * closing the connection between the server and client
      */
     @Override
-    public void close() throws Exception {
+    public void close() {
         if(isValidSession) {
             channelSftp.disconnect();
             session.disconnect();

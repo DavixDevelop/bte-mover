@@ -18,11 +18,11 @@ public class NumberDialog extends JDialog {
         return numberValue;
     }
 
-    private RoundedButton okButton;
-    private RoundedTextField numberField;
-    private JOptionPane optionPane;
+    private final RoundedButton okButton;
+    private final RoundedTextField numberField;
+    private final JOptionPane optionPane;
 
-    private Pattern numberValidator = Pattern.compile("^(\\d+)", Pattern.CASE_INSENSITIVE);
+    private final Pattern numberValidator = Pattern.compile("^(\\d+)", Pattern.CASE_INSENSITIVE);
 
     public NumberDialog(Frame frame, String label, String placeholder){
         super(frame, true);
@@ -38,7 +38,7 @@ public class NumberDialog extends JDialog {
         Object[] content = {label, numberField};
         Object[] options = {okButton};
 
-        optionPane = new JOptionPane(content, JOptionPane.QUESTION_MESSAGE, JOptionPane.OK_OPTION, FTPDialog.questionIcon, options, options[0]);
+        optionPane = new JOptionPane(content, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_OPTION, FTPDialog.questionIcon, options, options[0]);
         optionPane.setFont(UIVars.RobotoLight.deriveFont(UIVars.primaryFontSize));
         optionPane.setBackground(UIVars.primaryColor);
 

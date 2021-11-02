@@ -1,9 +1,6 @@
 package com.davixdevelop.btemover.logic;
 
 import com.davixdevelop.btemover.model.Region;
-import org.opengis.geometry.Envelope;
-
-import java.time.LocalDateTime;
 
 public interface IMoverModelObserver {
 
@@ -22,6 +19,7 @@ public interface IMoverModelObserver {
      *               1 - Source layer
      *               2 - Target layer
      *               3 - Transfer layer
+     *               4 - Shared layer
      */
     void zoomToLayers(Integer status);
     void showMessage(String[] message);

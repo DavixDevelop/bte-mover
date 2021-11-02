@@ -7,7 +7,7 @@ package com.davixdevelop.btemover.model;
  * @author DavixDevelop
  */
 public class TimerModel {
-    private int total2DRegions;
+    private final int total2DRegions;
     public int getTotal2DRegions() {
         return total2DRegions;
     }
@@ -25,7 +25,7 @@ public class TimerModel {
     private int progress2DRegions = 0;
     private int progress3DRegions = 0;
 
-    private long startTime;
+    private final long startTime;
 
     public long getStartTime() { return startTime;
     }
@@ -34,7 +34,7 @@ public class TimerModel {
         total2DRegions = _total2DRegions;
         total3DRegions = _total3DRegions;
         totalRegions = total2DRegions + total3DRegions;
-        startTime = System.currentTimeMillis();;
+        startTime = System.currentTimeMillis();
     }
 
 

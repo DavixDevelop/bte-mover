@@ -1,13 +1,7 @@
 package com.davixdevelop.btemover.model;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.*;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Hashtable;
+import java.util.Objects;
 
 /**
  * Represents a wrapper for all the ftp clients, by choosing which one to use depending on the

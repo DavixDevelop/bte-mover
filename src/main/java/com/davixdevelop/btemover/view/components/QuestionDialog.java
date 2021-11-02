@@ -5,30 +5,26 @@ import com.davixdevelop.btemover.view.UIVars;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class QuestionDialog extends JDialog {
-    private RoundedButton yesButton;
-    private RoundedButton noButton;
 
-    private JOptionPane optionPane;
+    private final JOptionPane optionPane;
 
     public QuestionDialog(Frame frame, String title, String question){
         super(frame, true);
         setPreferredSize(new Dimension(390, 170));
 
-        yesButton = new RoundedButton("YES");
-        yesButton.setAlternative(true);
+        RoundedButton yesButton = new RoundedButton("YES");
+        yesButton.setAlternative();
 
-        noButton = new RoundedButton("NO");
+        RoundedButton noButton = new RoundedButton("NO");
 
         Object[] content = {title, question};
         Object[] options = {yesButton, noButton};
 
-        optionPane = new JOptionPane(content, JOptionPane.YES_NO_OPTION, JOptionPane.YES_OPTION, FTPDialog.questionIcon, options, options[0]);
+        optionPane = new JOptionPane(content, JOptionPane.INFORMATION_MESSAGE, JOptionPane.YES_NO_OPTION, FTPDialog.questionIcon, options, options[0]);
         optionPane.setFont(UIVars.RobotoLight.deriveFont(UIVars.primaryFontSize));
         optionPane.setBackground(UIVars.primaryColor);
 

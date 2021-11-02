@@ -38,9 +38,6 @@ public class QueriedRegionLabel extends JLabel {
         Graphics2D g2 = (Graphics2D)g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        //g2.setColor(UIVars.primaryBg);
-        //g2.fillRect(0,0,getWidth(), getHeight());
-
         g2.setColor(UIVars.queriedRegionItemBg);
         g2.fillRoundRect(0,0,getWidth(), getHeight() - UIVars.queriedRegionItemInsets[4], UIVars.queriedRegionItemRadius, UIVars.queriedRegionItemRadius);
 

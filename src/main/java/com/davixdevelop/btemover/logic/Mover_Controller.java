@@ -93,7 +93,7 @@ public class Mover_Controller implements IMoverModelObserver {
             }
         });
 
-        view.initCoooseTargetFTPListener(new AbstractAction() {
+        view.initChooseTargetFTPListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 FTPDialog ftpDialog = new FTPDialog(view, model.getTargetFTP());
@@ -113,7 +113,7 @@ public class Mover_Controller implements IMoverModelObserver {
         view.initPreviewListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                //Toogle layers back on visible if the shapefile layer was already added
+                //Toggle layers back on visible if the shapefile layer was already added
                 if(model.getShapefileLayerStatus() == 2){
                     view.getOnSourceCountLabel().setToggled(true);
                     model.getSourceRegionsLayer().setVisible(true);
@@ -130,13 +130,6 @@ public class Mover_Controller implements IMoverModelObserver {
 
                 Runnable runnable = () -> {
                     model.previewTransfers();
-            /*SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    view.enableTransferButton(previewTransfers);
-                }
-            });
-            */
                 };
                 view.enableToolButtons(false);
                 view.showSpinner(true);
@@ -217,19 +210,19 @@ public class Mover_Controller implements IMoverModelObserver {
                         ReferencedEnvelope exportedImageBounds = model.getMapContent().getViewport().getBounds();
                         double[] upper_corner = exportedImageBounds.getUpperCorner().getCoordinate();
                         double[] lower_corner = exportedImageBounds.getLowerCorner().getCoordinate();
-                        double d_xres = (upper_corner[0] - lower_corner[0]) / rectangleImage.getWidth();
-                        double d_yres = (Math.abs(upper_corner[1] - lower_corner[1]) / rectangleImage.getHeight()) * -1;
+                        double _XResolution = (upper_corner[0] - lower_corner[0]) / rectangleImage.getWidth();
+                        double _YResolution = (Math.abs(upper_corner[1] - lower_corner[1]) / rectangleImage.getHeight()) * -1;
 
                         String ulx = scientificNotion.format(lower_corner[0]);
-                        String xres = scientificNotion.format(d_xres);
+                        String XResolution = scientificNotion.format(_XResolution);
                         String uly = scientificNotion.format(upper_corner[1]);
-                        String yres = scientificNotion.format(d_yres);
+                        String YResolution = scientificNotion.format(_YResolution);
 
                         File auxFile = new File(imageFile + ".aux.xml");
                         PrintWriter printWriter = new PrintWriter(new FileWriter(auxFile));
                         printWriter.println("<PAMDataset>");
                         ////X_COORDINATE_OF_TOP_LEFT_CORNER, (X_SIZE_IN_MAP/X_PIXEL_OF_IMAGE),-0.0000000000000000e+000, Y_COORDINATE_OF_TOP_LEFT_CORNER, 0.0000000000000000e+000,-(Z_SIZE_IN_MAP/Z_PIXEL_OF_IMAGE)
-                        printWriter.println("  <GeoTransform> " + ulx + ", " + xres + ", -0.0000000000000000e+000, " + uly + ", 0.0000000000000000e+000, " + yres + "</GeoTransform>");
+                        printWriter.println("  <GeoTransform> " + ulx + ", " + XResolution + ", -0.0000000000000000e+000, " + uly + ", 0.0000000000000000e+000, " + YResolution + "</GeoTransform>");
                         printWriter.println("  <Metadata domain=\"IMAGE_STRUCTURE\">");
                         printWriter.println("    <MDI key=\"INTERLEAVE\">PIXEL</MDI>");
                         printWriter.println("  </Metadata>");
@@ -243,10 +236,10 @@ public class Mover_Controller implements IMoverModelObserver {
 
 
                 }catch (Exception ex){
-                    MessageDialog messageDialog = new MessageDialog(view, new String[]{"Error while crrating image:", ex.toString()});
+                    MessageDialog messageDialog = new MessageDialog(view, new String[]{"Error while creating image:", ex.toString()});
                     messageDialog.setVisible(true);
 
-                    int result = ((Integer)messageDialog.getOptionPane().getValue()).intValue();
+                    ((Integer)messageDialog.getOptionPane().getValue()).intValue();
                 }
             }
         });
@@ -327,7 +320,7 @@ public class Mover_Controller implements IMoverModelObserver {
     }
 
     public void refreshPreviewButton(){
-        view.enableToolButtons(!Objects.equals(model.getShapefilePath(),"") && model.getTargetFTP() != null && model.getSourceFTP() != null);
+        view.enableToolButtons(!Objects.equals(model.getShapefilePath(),"") && model.getSourceFTP() != null);
     }
 
     /**
@@ -371,6 +364,14 @@ public class Mover_Controller implements IMoverModelObserver {
         }
         else {
             view.enableTransferButton(false);
+            if(model.getSharedRegionsCount() == 0)
+                if(model.getSourceRegionsCount() > 0)
+                    zoomToLayers(1);
+                else
+                    zoomToLayers(0);
+            else{
+                zoomToLayers(4);
+            }
         }
         view.setOnSourceCountLabel(String.valueOf(model.getSourceRegionsCount()));
         view.setOnTargetCountLabel(String.valueOf(model.getTargetRegionsCount()));
@@ -390,6 +391,7 @@ public class Mover_Controller implements IMoverModelObserver {
      *               1 - Source layer
      *               2 - Target layer
      *               3 - Transfer layer
+     *               4 - Shared layer
      */
     @Override
     public void zoomToLayers(Integer layer) {
@@ -402,8 +404,10 @@ public class Mover_Controller implements IMoverModelObserver {
             envelope = new ReferencedEnvelope(model.getTargetRegionsLayer().getBounds());
         }else if(layer == 3){
             envelope = new ReferencedEnvelope(model.getTransferRegionsLayer().getBounds());
-
+        }else if(layer == 4){
+            envelope = new ReferencedEnvelope(model.getSharedRegionsLayer().getBounds());
         }
+
         if(envelope != null)
             if(envelope.getMaximum(0) != -1.0 && envelope.getMaximum(1) != -1.0 && envelope.getMinimum(0) != 0.0 && envelope.getMinimum(1) != 0.0) {
                 envelope.expandBy(.1);
@@ -519,9 +523,9 @@ public class Mover_Controller implements IMoverModelObserver {
         }
 
         //long millis = 0;
-        long second = 0;
-        long minute = 0;
-        long hour = 0;
+        long second;
+        long minute;
+        long hour;
         long currentTime = System.currentTimeMillis();
 
         int completeRegions = (status == -1 || status == -2 || status == -4) ? model.getTimerModel().getProgress2DRegions() + model.getTimerModel().getProgress3DRegions() : status;
@@ -555,7 +559,7 @@ public class Mover_Controller implements IMoverModelObserver {
             view.setOnShared3DCountLabel(model.getSharedRegions3DCount());
             view.setOnTransfer3DCountLabel(model.getTransferRegions3DCount());
 
-            if(error[0] == true){
+            if(error[0]){
                 showMessage(new String[]{"Some error's occurred during transferring", "Check log and press the Preview button to try again"});
             }
         }

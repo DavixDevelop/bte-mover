@@ -1,9 +1,7 @@
 package com.davixdevelop.btemover.view.style;
 
 import javax.swing.border.AbstractBorder;
-import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 
 /**
  * Represents an rounder corner border with the supplied radius and background color
@@ -11,8 +9,8 @@ import java.awt.geom.RoundRectangle2D;
  * @author DavixDevelop
  */
 public class RoundedBorder extends AbstractBorder {
-    private int rad;
-    private Color backgroundColor;
+    private final int rad;
+    private final Color backgroundColor;
 
     public RoundedBorder(int _rad, Color _backgroundColor){
         rad = _rad;
