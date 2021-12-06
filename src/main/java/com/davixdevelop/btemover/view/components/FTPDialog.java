@@ -48,7 +48,7 @@ public class FTPDialog extends JDialog {
 
     private final UrlValidator urlValidator = new UrlValidator(new String[]{"ftp", "ftps", "sftp", "ftpes"});
     //private Pattern serverAddressValidator = Pattern.compile("ftp://([^-]*):(\\d+)[/]?(.+)?", Pattern.CASE_INSENSITIVE);
-    private final Pattern serverAddressValidator = Pattern.compile("^(ftp|sftp|ftps|ftpes)://([^-]*):(\\d+)[/]?(.+)?", Pattern.CASE_INSENSITIVE);
+    private final Pattern serverAddressValidator = Pattern.compile("^(ftp|sftp|ftps|ftpes)://([^\\s]*):(\\d+)[/]?(.+)?", Pattern.CASE_INSENSITIVE);
 
     public FTPDialog(Frame _frame, FTPOptions _inOptions){
         super(_frame, true);
