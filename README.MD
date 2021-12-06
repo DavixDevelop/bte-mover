@@ -42,6 +42,19 @@ Example of an url would then be `ftp://192.168.0.26:2121/saves/BTECelje` where `
 If the entered information is correct we can than test the connection by either pressing on the `Test` button. If the dialog icon changes to a check mark, the server is a valid one, but if the changes to an X, the entered information isn't correct, or the client can't establish a connection.<br>
 Pressing the `OK` button performs the same connection test and closes the dialog if the connection was a success.
 
+If an error occurs during adding a sftp server, make sure to check if your sftp server supports the KEY, Cipher, or MAC algorithms, and host key types that the JSch library supports.
+BTE Mover uses the mwiede [Fork of JSch-0.1.55](https://github.com/mwiede/jsch) of the original [JSch](http://www.jcraft.com/jsch), so make sure to take a look at the list of supported algorithms.
+If you've opened BTE Mover through the terminal you can find the list of supported algorithms that your server uses there. Ex. :
+> INFO: kex: server: curve25519-sha256@libssh.org,ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group14-sha1 <br>
+> INFO: kex: server: ssh-ed25519<br>
+> INFO: kex: server: aes128-gcm@openssh.com,chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr <br>
+> INFO: kex: server: aes128-gcm@openssh.com,chacha20-poly1305@openssh.com,aes128-ctr,aes192-ctr,aes256-ctr<br>
+> INFO: kex: server: hmac-sha2-256-etm@openssh.com,hmac-sha2-256,hmac-sha1,hmac-sha1-96<br>
+> INFO: kex: server: hmac-sha2-256-etm@openssh.com,hmac-sha2-256,hmac-sha1,hmac-sha1-96
+
+The first line is the key algorithms, the second line the host key type of the server, the third line is the Cipher algorithms the server supports,
+and the fifth line is the MAC algorithms the server supports.
+
 #### LIST Command
 The application uses the LIST command via the FTP protocol to get the list of regions, ex. the region name and size. If your FTP server doesn't properly support this command (it uses an unknown list format that can't be parsed),
 the application switches to the LEGACY mode. In this mode, the application only gets a list of region names from the FTP server. This means that 3d regions that are less than 16384 bytes big get will also get included in the preview process, and only get
@@ -75,6 +88,10 @@ If for any reason, the transfer fails for a region, it's status in the query lis
 If for any reason an error occurs during the transfers, the whole process **stops**, and a message notify the user to check the logs, displays.
 
 Once the transfer process finishes, the application display's on the bottom how long it took to transfer the files.
+
+###Known limits
+- To avoid problems, it's recommended to use a shapefile with a single feature and not multiple ones
+- If you zoom out a lot have the OSM layer toggled on and specify a big resolution for the exported image, ex 8192, the OSM layer won't get rendered, due to the 128 tiles limit.
 
 ###Future plans
 The application is 99% finished, therefore the only thing that I intend to improve a bit is the look of the UI, like the scroller, more detailed notifying of errors back to the user and small improvements.

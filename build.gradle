@@ -14,7 +14,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 mainClassName = 'com.davixdevelop.btemover.Mover_Main'
 
 group 'com.davixdevelop'
-version '1.3-' + ('git rev-list --count HEAD'.execute().text.trim())
+version '1.4-' + ('git rev-list --count HEAD'.execute().text.trim())
 
 repositories {
     maven {
@@ -65,7 +65,8 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     compile 'com.github.SmylerMC:terraminusminus:master-SNAPSHOT'
     compile 'com.github.asbachb:ftp4j:master-SNAPSHOT'
-    compile 'com.jcraft:jsch:0.1.55'
+    compile 'org.bouncycastle:bcprov-jdk15on:1.70'
+    compile 'com.github.mwiede:jsch:0.1.70'
     compile 'commons-validator:commons-validator:1.7'
     compile 'org.geotools:gt-main:25.2'
     compile 'org.geotools:gt-shapefile:25.2'
