@@ -13,12 +13,13 @@ import java.io.InputStream;
 public class UIVars {
     public static int buttonRadius = 14;
     public static int[] buttonInsets = new int[] {5,10,5,10};
-    public static int[] circleButtonInsets = new int[] {5,5,5,5};
+    public static int circleButtonInset = 5;
 
     public static int textFieldRadius = 14;
     public static int[] textFieldInsets = new int[] {5,10,5,10};
 
     public static Float primaryFontSize = 17f;
+    public static Float smallFontSize = 12f;
 
     public static Color primaryBg = Color.decode("#30947b"); //#6da492
     public static Color primaryColor = Color.decode("#c790b9");

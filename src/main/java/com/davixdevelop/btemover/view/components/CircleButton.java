@@ -1,7 +1,6 @@
 package com.davixdevelop.btemover.view.components;
 
 import com.davixdevelop.btemover.view.UIVars;
-import com.davixdevelop.btemover.view.style.RegionListRenderer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,6 +18,7 @@ public class CircleButton extends JButton {
     public static ImageIcon SHAPEFILE_ICON = new ImageIcon(CircleButton.class.getResource("shapefile.png"));
 
     private int rad;
+    private int margin;
     private Color backgroundColor;
     private ImageIcon icon;
     private boolean isToggleButton;
@@ -44,15 +44,25 @@ public class CircleButton extends JButton {
     public CircleButton(ImageIcon _icon, boolean _isToggleButton){
         super("");
         icon = _icon;
-        setPreferredSize(new Dimension(icon.getIconWidth() + UIVars.circleButtonInsets[1] + UIVars.circleButtonInsets[3], icon.getIconHeight() + UIVars.circleButtonInsets[0] + UIVars.circleButtonInsets[2]));
+        margin = UIVars.circleButtonInset;
+        setPreferredSize(new Dimension(icon.getIconWidth() + margin + margin, icon.getIconHeight() + margin + margin));
         isToggleButton = _isToggleButton;
         setFont(UIVars.RobotoLight.deriveFont(UIVars.primaryFontSize));
         setContentAreaFilled(false);
         rad = 50;
         backgroundColor = UIVars.circleButtonBgColor;
-        //setBackground(UIVars.secondaryBgDarkenedColor);
 
-        setMargin( new Insets(UIVars.circleButtonInsets[0], UIVars.circleButtonInsets[1], UIVars.circleButtonInsets[2], UIVars.circleButtonInsets[3]));
+        setMargin( new Insets(margin, margin, margin, margin));
+    }
+
+    public void setBackgroundColor(Color _backgroundColor) {
+        backgroundColor = _backgroundColor;
+    }
+
+    public void setMargin(int _margin){
+        margin = _margin;
+        setPreferredSize(new Dimension(icon.getIconWidth() + margin + margin, icon.getIconHeight() + margin + margin));
+        setMargin( new Insets(margin, margin, margin, margin));
     }
 
     @Override
@@ -89,7 +99,7 @@ public class CircleButton extends JButton {
 
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), rad, rad);
 
-        g2.drawImage(icon.getImage(), UIVars.circleButtonInsets[1], getHeight() / 2 - icon.getIconHeight() / 2, null);
+        g2.drawImage(icon.getImage(), getWidth() / 2 - icon.getIconWidth() / 2, getHeight() / 2 - icon.getIconHeight() / 2, null);
 
         super.paintComponent(g);
     }

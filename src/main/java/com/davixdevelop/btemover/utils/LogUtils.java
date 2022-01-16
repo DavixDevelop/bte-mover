@@ -19,8 +19,19 @@ public class LogUtils {
     public static void log(Object message){
         String currentLog = messageLog;
         String newLog = new Date() + " " + message.toString();
-        messageLog = newLog + "\n" +  currentLog;
+        if(messageLog.equals(""))
+            messageLog = newLog;
+        else
+            messageLog = newLog + "\n" +  currentLog;
         System.out.println(newLog);
+    }
+
+    public static String returnLatest(){
+        if(!messageLog.contains("\n"))
+            return messageLog;
+
+        String last = messageLog.substring(0 , messageLog.lastIndexOf("\n") - 1);
+        return last;
     }
 
 }

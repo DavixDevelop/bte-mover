@@ -7,6 +7,7 @@ import com.jcraft.jsch.Session;
 
 import java.io.*;
 import java.util.Hashtable;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
@@ -41,7 +42,12 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
             JSch.setLogger(new JschRegionLogger());
             JSch jSch = new JSch();
             session = jSch.getSession(ftpOptions.getUser(), ftpOptions.getServer(), ftpOptions.getPort());
-            session.setPassword(ftpOptions.getPassword());
+            if(JschSFTPRegionClient.isSFTPKeyFile(ftpOptions)){
+                jSch.addIdentity(JschSFTPRegionClient.getKeyFile(ftpOptions));
+            }else{
+                session.setPassword(ftpOptions.getPassword());
+            }
+
             //Disable checking for host file
             session.setConfig("StrictHostKeyChecking","no");
             //Connection timeout
@@ -171,7 +177,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
      * @param targetFile Where to download the 2d region file
      * @return The success of the download
      */
-    @Override
+    /*@Override
     public boolean download2DRegion(Region region, String targetFile) {
         boolean result;
         try{
@@ -192,6 +198,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
         return result;
     }
+     */
 
     /**
      * Downloads the 3d region files from the supplied region3d name
@@ -199,7 +206,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
      * @param targetFile Where to download the 3d region file
      * @return The success of the download
      */
-    @Override
+    /*@Override
     public boolean download3DRegion(String region3d, String targetFile) {
         boolean result;
         try{
@@ -220,14 +227,14 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
         return result;
     }
-
+    */
     /**
      * Uploads the 2d region file from the supplied region2DPath
      * @param region2DPath The path to 2d region file to upload
      * @param region The region to upload
      * @return The success of the upload
      */
-    @Override
+    /*@Override
     public boolean upload2DRegion(String region2DPath, Region region) {
         boolean result;
         try{
@@ -246,14 +253,14 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
         return  result;
     }
-
+    */
     /**
      * Uploads the 3d region file from the supplied region3DPath
      * @param region3DPath The path to 3d region file to upload
      * @param region3DName The name of 3d region to upload
      * @return The success of the upload
      */
-    @Override
+    /*@Override
     public boolean upload3DRegion(String region3DPath, String region3DName) {
         boolean result;
         try{
@@ -272,7 +279,7 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
 
         return  result;
     }
-
+    */
     /**
      * Test if the server can be connected to with the ftpOptions and the server contains the
      * region2d and region3d folder
@@ -454,6 +461,37 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
         }
 
         return result[0];
+    }
+
+    /**
+     * Test if ftp options use a key-file based auth (password starts with key-file://)
+     * @param _ftpOptions The ftp options to check
+     * @return The result of the check
+     */
+    public static boolean isSFTPKeyFile(FTPOptions _ftpOptions){
+        if(Objects.equals(_ftpOptions.getProtocol(), "sftp")){
+            if(_ftpOptions.getPassword().startsWith("key-file://")){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get the key-file path
+     * @param _ftpOptions The ftp options to get the key-file path from
+     * @return Path of key-file
+     */
+    public static String getKeyFile(FTPOptions _ftpOptions){
+        String privateKey = _ftpOptions.getPassword().substring(11);
+        return privateKey;
+    }
+
+    public static FTPOptions setKeyFile(FTPOptions _ftpOptions, String path){
+        if(path.contains("\\"))
+            path = path.replace("\\", "/");
+        _ftpOptions.setPassword("key-file://" + path);
+        return _ftpOptions;
     }
 
     public static class JschRegionLogger implements com.jcraft.jsch.Logger {

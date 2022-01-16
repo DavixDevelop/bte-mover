@@ -23,6 +23,8 @@ public class RegionFTPClient implements IRegionFTPClient {
             ftpClient = new Ftp4jRegionFTPClient(_ftpOptions);
         else if(Objects.equals(_ftpOptions.getProtocol(),"sftp"))
             ftpClient = new JschSFTPRegionClient(_ftpOptions);
+        else if(Objects.equals(_ftpOptions.getProtocol(), "file"))
+            ftpClient = new FileClient(_ftpOptions);
     }
 
     /**
@@ -56,9 +58,9 @@ public class RegionFTPClient implements IRegionFTPClient {
      * @param targetFile Where to download the 2d region file
      * @return The success of the download
      */
-    public boolean download2DRegion(Region region, String targetFile) {
+    /*public boolean download2DRegion(Region region, String targetFile) {
         return ftpClient.download2DRegion(region, targetFile);
-    }
+    }*/
 
     /**
      * Downloads the 3d region files from the supplied region3d name
@@ -66,9 +68,9 @@ public class RegionFTPClient implements IRegionFTPClient {
      * @param targetFile Where to download the 3d region file
      * @return The success of the download
      */
-    public boolean download3DRegion(String region3d, String targetFile) {
+    /*public boolean download3DRegion(String region3d, String targetFile) {
         return ftpClient.download3DRegion(region3d, targetFile);
-    }
+    }*/
 
     /**
      * Uploads the 2d region file from the supplied region2DPath
@@ -76,9 +78,9 @@ public class RegionFTPClient implements IRegionFTPClient {
      * @param region The region to upload
      * @return The success of the upload
      */
-    public boolean upload2DRegion(String region2DPath, Region region) {
+    /*public boolean upload2DRegion(String region2DPath, Region region) {
         return ftpClient.upload2DRegion(region2DPath, region);
-    }
+    }*/
 
     /**
      * Uploads the 2d region file from the supplied region2DPath
@@ -86,9 +88,9 @@ public class RegionFTPClient implements IRegionFTPClient {
      * @param region3DName The name of 3d region to upload
      * @return The success of the upload
      */
-    public boolean upload3DRegion(String region3DPath, String region3DName) {
+    /*public boolean upload3DRegion(String region3DPath, String region3DName) {
         return ftpClient.upload3DRegion(region3DPath, region3DName);
-    }
+    }*/
 
     /**
      * The internal call to the chosen client testClient method
@@ -119,7 +121,7 @@ public class RegionFTPClient implements IRegionFTPClient {
     }
 
     /**
-     * Get's the content of the 2d region file on the remote server
+     * Get's the content of the 3d region file on the remote server
      * @param region3DName The name of the 3d region to get
      * @return Byte array representing the content of the 3d region
      */

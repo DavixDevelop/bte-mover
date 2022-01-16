@@ -1,4 +1,6 @@
-
+- [1.5](https://github.com/DavixDevelop/bte-mover/releases/tag/v1.5)
+    - Added support for local sources (local storage via the file:// syntax)
+    - Added support for key-files (OpenSSH format for usage via sftp)
 - [1.4](https://github.com/DavixDevelop/bte-mover/releases/tag/v1.4)
     - Switched to mwiede actively maintained fork of [JSch](https://github.com/mwiede/jsch)
     - Added the Bouncy Castle Provider (bcprov-jdk15on)

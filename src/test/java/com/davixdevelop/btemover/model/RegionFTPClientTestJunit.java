@@ -21,6 +21,8 @@ public class RegionFTPClientTestJunit {
     private FakeFtpServer ftpServer;
     private FTPOptions ftpOptions;
 
+    private byte[] actualData;
+
     @Before
     public void setup() throws Exception {
         ftpServer = new FakeFtpServer();
@@ -33,12 +35,12 @@ public class RegionFTPClientTestJunit {
         //Read region from resource to input stream
         InputStream inputStream = RegionFTPClientTestJunit.class.getResourceAsStream("0.-8732.2dr");
         //Create byte array of size of input stream
-        byte[] regionArray = new byte[inputStream.available()];
+        byte[] actualData = new byte[inputStream.available()];
         //Read input stream to byte array and close it
-        inputStream.read(regionArray);
+        inputStream.read(actualData);
         inputStream.close();
         //Set the fake region content to that of the read byte array
-        testRegion.setContents(regionArray);
+        testRegion.setContents(actualData);
         //Add the fake region file to the fake filesystem
         fileSystem.add(testRegion);
 
@@ -69,10 +71,8 @@ public class RegionFTPClientTestJunit {
         RegionFTPClient ftpClient = new RegionFTPClient(ftpOptions);
         if(ftpClient.open()){
             Region testRegion = new Region(0, -8732);
-            ftpClient.download2DRegion(testRegion, "0.-8732.3dr");
-            File testFile = new File("0.-8732.3dr");
-            Assert.assertEquals(true,testFile.exists());
-            testFile.delete();
+            byte[] data = ftpClient.get2DRegion(testRegion);
+            Assert.assertArrayEquals(actualData, data);
 
             ftpClient.close();
         }

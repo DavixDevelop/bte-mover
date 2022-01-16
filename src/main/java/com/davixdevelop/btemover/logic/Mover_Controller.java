@@ -86,7 +86,10 @@ public class Mover_Controller implements IMoverModelObserver {
                 int result = ((Integer)ftpDialog.getOptionPane().getValue()).intValue();
                 if(result == JOptionPane.OK_OPTION){
                     model.setSourceFTP(ftpDialog.getFtpOptions());
-                    view.setSourceFTP_label(model.getSourceFTP().getUser() + "@" + model.getSourceFTP().getProtocol() + "://" + model.getSourceFTP().getServer() + ":" + model.getSourceFTP().getPort() + ((model.getSourceFTP().getPath() != null) ? (model.getSourceFTP().getPath().length() != 0) ? ("/" + model.getSourceFTP().getPath()) : "" : ""));
+                    if(Objects.equals(model.getSourceFTP().getProtocol(),"file"))
+                        view.setSourceFTP_label(model.getSourceFTP().getProtocol() + "://" + model.getSourceFTP().getPath());
+                    else
+                        view.setSourceFTP_label(model.getSourceFTP().getUser() + "@" + model.getSourceFTP().getProtocol() + "://" + model.getSourceFTP().getServer() + ":" + model.getSourceFTP().getPort() + ((model.getSourceFTP().getPath() != null) ? (model.getSourceFTP().getPath().length() != 0) ? ("/" + model.getSourceFTP().getPath()) : "" : ""));
                 }
 
                 refreshPreviewButton();
@@ -103,7 +106,10 @@ public class Mover_Controller implements IMoverModelObserver {
                 int result = ((Integer)ftpDialog.getOptionPane().getValue()).intValue();
                 if(result == JOptionPane.OK_OPTION){
                     model.setTargetFTP(ftpDialog.getFtpOptions());
-                    view.setTargetFTP_label(model.getTargetFTP().getUser() + "@" + model.getTargetFTP().getProtocol() + "://" + model.getTargetFTP().getServer() + ":" + model.getTargetFTP().getPort() + ((model.getTargetFTP().getPath() != null) ? (model.getTargetFTP().getPath().length() != 0) ? ("/" + model.getTargetFTP().getPath()) : "" : ""));
+                    if(Objects.equals(model.getTargetFTP().getProtocol(),"file"))
+                        view.setTargetFTP_label(model.getTargetFTP().getProtocol() + "://" + model.getTargetFTP().getPath());
+                    else
+                        view.setTargetFTP_label(model.getTargetFTP().getUser() + "@" + model.getTargetFTP().getProtocol() + "://" + model.getTargetFTP().getServer() + ":" + model.getTargetFTP().getPort() + ((model.getTargetFTP().getPath() != null) ? (model.getTargetFTP().getPath().length() != 0) ? ("/" + model.getTargetFTP().getPath()) : "" : ""));
                 }
 
                 refreshPreviewButton();

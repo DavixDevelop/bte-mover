@@ -3,7 +3,7 @@
 ## BTE Mover
 
 BTE Mover is a java application that moves/copies  2d/3d regions from a Minecraft Terra++ World (Default BTE preset) to another Minecraft Terra++ World. The regions to be moved get selected based on the ESRI Shapefile, that the user imports.
-It's meant to be used on a world save which files can be accessed though ftp.
+It's meant to be used on a world save which files can be accessed though ftp or through the local storage system.
 In addition to ftp, the application also works with sftp, ftps and ftpes.
 
 ### Features:
@@ -11,6 +11,8 @@ In addition to ftp, the application also works with sftp, ftps and ftpes.
  - View map of built regions on server
  - Transfer regions
  - Export map to image
+ - Support for ftp/file protocol
+ - Support for OpenSSH key-files (private key)
 
 ### How to use
 You can either download the jar file from the latest release, or you can build the project yourself. You can read more about that [here](https://github.com/DavixDevelop/bte-mover/wiki/Build-Instructions).
@@ -30,14 +32,24 @@ Once you've acquired such a shapefile, you can import it with the `Import` butto
 After that you must set the ftp options for the source and target server, by using the `Source FTP` and `Target FTP` buttons respectively.<br>
 > **If you wish to only view a map of built regions on the source server only set the Source FTP options.**
 
-The username and password text fields are self-explanatory.
+The username and password text fields are self-explanatory. In case of using sftp you can also use a key-file with a private key. In case of using a key-file It's important that It's in the OpenSHH format.
+In case you are using a private key in another format, like Putty Private Key File (.ppt file) you can use PuTTYgen to convert it to the OpenSSH format.<br>
+**To enable the function to add the key-file you must first input a fully correct url syntax in the server text field. More about it bellow.** 
+
 For the server text field, you must be sure that the url is in the following format:
 
 `(ftp|ftps|sftp|ftpes)://hostname:port(/path)`
 
 The first round brackets group specify the chosen protocol to use (one of the four). The hostname is the IP address or the domain of the server. The port is the port of the server (ex. 21 for FTP). The second round brackets is optional, and represents the path to the world save on the server. **It's extremely important that the url doesn't end with a `/`**.
 
-Example of an url would then be `ftp://192.168.0.26:2121/saves/BTECelje` where `saves/BTECelje` would be that path to the world once we establish a connection to `192.168.0.26` thought the `2121` port using the `fpt` protocol.
+Example of an url would then be `ftp://192.168.0.26:2121/saves/BTECelje` where `saves/BTECelje` would be that path to the world once we establish a connection to `192.168.0.26` thought the `2121` port using the `ftp` protocol.
+
+If you want to add a local source (a world saved on the local storage system) use the following syntax:
+
+`file://path-to-world-save`
+
+Example of such url would be `file://C:\Users\david\AppData\Roaming\.minecraft\saves\BTE Celje` or `file://C:/Users/david/AppData/Roaming/.minecraft/saves/BTE Celje`)<br>
+**As before It's important that the url doesn't end with `/` or a with a backslash.**
 
 If the entered information is correct we can than test the connection by either pressing on the `Test` button. If the dialog icon changes to a check mark, the server is a valid one, but if the changes to an X, the entered information isn't correct, or the client can't establish a connection.<br>
 Pressing the `OK` button performs the same connection test and closes the dialog if the connection was a success.

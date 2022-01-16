@@ -225,7 +225,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
      * @param targetFile Where to download the 2d region file
      * @return The success of the download
      */
-    @Override
+    /*@Override
     public boolean download2DRegion(Region region, String targetFile) {
         final boolean[] result = {false};
         try{
@@ -269,14 +269,14 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
         return result[0];
     }
-
+     */
     /**
      * Downloads the 3d region files from the supplied region3d name
      * @param region3d The name the 3d region
      * @param targetFile Where to download the 3d region file
      * @return The success of the download
      */
-    @Override
+    /*@Override
     public boolean download3DRegion(String region3d, String targetFile) {
         final boolean[] result = {false};
         try{
@@ -320,14 +320,14 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
 
         return result[0];
     }
-
+    */
     /**
      * Uploads the 2d region file from the supplied region2DPath
      * @param region2DPath The path to 2d region file to upload
      * @param region The region to upload
      * @return The success of the upload
      */
-    @Override
+    /*@Override
     public boolean upload2DRegion(String region2DPath, Region region) {
         boolean[] result = {false};
         try{
@@ -368,14 +368,14 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
         }
         return result[0];
     }
-
+    */
     /**
      * Uploads the 3d region file from the supplied region3DPath
      * @param region3DPath The path to 3d region file to upload
      * @param region3DName The name of 3d region to upload
      * @return The success of the upload
      */
-    @Override
+    /*@Override
     public boolean upload3DRegion(String region3DPath, String region3DName) {
         boolean[] result = {false};
         try{
@@ -416,7 +416,7 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
         }
         return result[0];
     }
-
+    */
     /**
      * Test if the server can be connected to with the ftpOptions and the server contains the
      * region2d and region3d folder

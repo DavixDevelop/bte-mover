@@ -15,10 +15,10 @@ public interface IRegionFTPClient {
     boolean open() throws Exception;
     void close() throws Exception;
     Hashtable<String, Region> getRegions();
-    boolean download2DRegion(Region region, String targetFile);
-    boolean download3DRegion(String region3d, String targetFile);
-    boolean upload2DRegion(String region2DPath, Region region);
-    boolean upload3DRegion(String region3DPath, String region3DName);
+    //boolean download2DRegion(Region region, String targetFile);
+    //boolean download3DRegion(String region3d, String targetFile);
+    //boolean upload2DRegion(String region2DPath, Region region);
+    //boolean upload3DRegion(String region3DPath, String region3DName);
     boolean testClient();
     boolean sendNoOpCommand() throws Exception;
 

@@ -19,12 +19,21 @@ import java.util.stream.Stream;
  */
 public class MessageDialog extends JDialog {
 
-    private final JOptionPane optionPane;
+    private JOptionPane optionPane;
 
-    private final JScrollPane logScroll;
+    private JScrollPane logScroll;
 
     public MessageDialog(Frame _frame, String[] message){
         super(_frame, true);
+        init(message);
+    }
+
+    public MessageDialog(Dialog _owner, String[] message){
+        super(_owner, true);
+        init(message);
+    }
+
+    private void init(String[] message){
         setPreferredSize(new Dimension(390, 170));
 
         RoundedButton okButton = new RoundedButton("OK");
@@ -114,6 +123,8 @@ public class MessageDialog extends JDialog {
             }
         });
 
+        pack();
+        setLocationRelativeTo(null);
     }
 
     public JOptionPane getOptionPane() {
