@@ -18,7 +18,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 mainClassName = 'com.davixdevelop.btemover.Mover_Main'
 
 group 'com.davixdevelop'
-version '1.4-' + ('git rev-list --count HEAD'.execute().text.trim())
+version '1.5-' + ('git rev-list --count HEAD'.execute().text.trim())
 
 repositories {
     maven {
