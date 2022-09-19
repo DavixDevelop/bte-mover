@@ -66,7 +66,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.1'
     testImplementation 'org.mockftpserver:MockFtpServer:2.7.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-    compile 'com.github.SmylerMC:terraminusminus:master-SNAPSHOT'
+    compile 'com.github.SmylerMC:terraminusminus:7ee320b2f2'//master-SNAPSHOT
     compile 'com.github.asbachb:ftp4j:master-SNAPSHOT'
     compile 'org.bouncycastle:bcprov-jdk15on:1.70'
     compile 'com.github.mwiede:jsch:0.1.70'
