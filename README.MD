@@ -23,8 +23,8 @@ where the .jar file is located. This way, if any exceptions occur, they will be 
 <img src="https://github.com/DavixDevelop/bte-mover/raw/master/docs/images/how_to_use.png" />
 
 #### Shapefile import
-As the application need's an input shapefile to work, you must either acquire on, or create one inside a gis tool, such a QGIS. 
-It's recommended that the shapefile uses the WGS84 projection, but it can use other projections defined in the EPSG database.
+As the application need's an input shapefile to work, you must either acquire one or create one inside a gis tool, such as QGIS. 
+It's recommended that the shapefile uses the WGS84 projection, but it can use other projections defined in the EPSG database. For example, you can search online for `<country name> shapefile` and you will find a suitable shapefile to use.
 
 Once you've acquired such a shapefile, you can import it with the `Import` button. 
 
