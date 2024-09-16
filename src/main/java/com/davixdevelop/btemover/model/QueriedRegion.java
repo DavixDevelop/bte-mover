@@ -64,6 +64,10 @@ public class QueriedRegion  {
      *               2. Uploading
      *               3. Done
      *               4. Failed
+     *               5. Deleting
+     *               6. Delete failed
+     *               7. Delete done
+     *               8. Download upload (Syncing -> 1 or more threads working on same region)
      */
     public void setStatus(int _status) {
         stat = _status;

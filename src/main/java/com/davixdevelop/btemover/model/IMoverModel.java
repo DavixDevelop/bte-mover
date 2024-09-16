@@ -8,4 +8,6 @@ package com.davixdevelop.btemover.model;
 public interface IMoverModel {
     void previewTransfers();
     void transferRegions();
+
+    void deleteRegions();
 }

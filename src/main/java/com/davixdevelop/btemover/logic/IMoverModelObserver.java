@@ -22,6 +22,12 @@ public interface IMoverModelObserver {
      *               4 - Shared layer
      */
     void zoomToLayers(Integer status);
+
+    /**
+     * Show a message to the user
+     * Note: Thread blocking
+     * @param message An array of messages per row
+     */
     void showMessage(String[] message);
     int questionMessage(String title, String question);
     int numberMessage(String label, String placeholder);
@@ -34,10 +40,16 @@ public interface IMoverModelObserver {
      *               2. Uploading
      *               3. Done
      *               4. Failed
+     *               5. Deleting
+     *               6. Delete failed
+     *               7. Delete done
+     *               8. Syncing
      */
     void setQueryItemIcon(Region region, Integer status);
     void setQueryItemCount(Region region, Integer count);
     void updateTransferCounts();
+
+    void updateDeleteCounts();
 
     /**
      *
@@ -49,6 +61,8 @@ public interface IMoverModelObserver {
      */
     void updateProgress(Integer status);
     void transferDone(boolean[] error);
+
+    void deleteDone(boolean[] error);
 
     void toggleOSMLayer(boolean toggle);
 

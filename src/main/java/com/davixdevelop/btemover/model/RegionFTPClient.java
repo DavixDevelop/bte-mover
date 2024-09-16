@@ -152,6 +152,16 @@ public class RegionFTPClient implements IRegionFTPClient {
         return ftpClient.put3DRegion(content, region3DName);
     }
 
+    @Override
+    public boolean delete2DRegion(Region region) {
+        return ftpClient.delete2DRegion(region);
+    }
+
+    @Override
+    public boolean delete3DRegion(String region3DName) {
+        return ftpClient.delete3DRegion(region3DName);
+    }
+
     /**
      * Test if the server can be connected to with the ftpOptions and the server contains the
      * region2d and region3d folder

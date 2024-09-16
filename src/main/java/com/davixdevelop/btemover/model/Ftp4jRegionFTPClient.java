@@ -670,4 +670,36 @@ public class Ftp4jRegionFTPClient extends FTPClient implements IRegionFTPClient{
         }
         return result[0];
     }
+
+    @Override
+    public boolean delete2DRegion(Region region) {
+        try{
+            String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
+                    "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
+
+
+            deleteFile(source);
+
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean delete3DRegion(String region3DName) {
+        try{
+            String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
+                    "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
+            deleteFile(source);
+
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            return false;
+        }
+
+        return true;
+    }
 }

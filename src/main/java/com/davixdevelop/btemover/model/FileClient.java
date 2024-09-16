@@ -199,6 +199,36 @@ public class FileClient implements IRegionFTPClient {
         }
     }
 
+    @Override
+    public boolean delete2DRegion(Region region) {
+        try {
+            String region_2d = Paths.get(get2DFolder(), region.getName() + ".2dr").toString();
+            File file = new File(region_2d);
+
+            FileUtils.forceDelete(file);
+
+        }catch (IOException ex){
+            LogUtils.log(ex);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean delete3DRegion(String region3DName) {
+        try {
+            String region_3d = Paths.get(get3DFolder(), region3DName + ".3dr").toString();
+            File file = new File(region_3d);
+
+            FileUtils.forceDelete(file);
+        }catch (IOException ex){
+            LogUtils.log(ex);
+            return false;
+        }
+
+        return true;
+    }
+
     private String get2DFolder(){
         return Paths.get(folderOptions.getPath(), "region2d").toString();
     }

@@ -463,6 +463,36 @@ public class JschSFTPRegionClient implements IRegionFTPClient {
         return result[0];
     }
 
+    @Override
+    public boolean delete2DRegion(Region region) {
+        try{
+            String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
+                    "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region2d/" + (region.getX() + "." + region.getZ() + ".2dr");
+
+            channelSftp.rm(source);
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean delete3DRegion(String region3DName) {
+        try{
+            String source = ((ftpOptions.getPath() != null) ? (ftpOptions.getPath().length() != 0) ?
+                    "/" + ftpOptions.getPath() + "/" : "/" : "/") + "region3d/" + region3DName + ".3dr";
+
+            channelSftp.rm(source);
+        }catch (Exception ex){
+            LogUtils.log(ex);
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Test if ftp options use a key-file based auth (password starts with key-file://)
      * @param _ftpOptions The ftp options to check

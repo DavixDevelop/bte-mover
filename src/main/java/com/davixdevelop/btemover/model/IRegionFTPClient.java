@@ -26,4 +26,7 @@ public interface IRegionFTPClient {
     byte[] get3DRegion(String region3DName);
     boolean put2DRegion(byte[] content, Region region);
     boolean put3DRegion(byte[] content, String region3DName);
+
+    boolean delete2DRegion(Region region);
+    boolean delete3DRegion(String region3DName);
 }

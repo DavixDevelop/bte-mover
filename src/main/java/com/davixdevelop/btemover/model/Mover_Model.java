@@ -39,6 +39,11 @@ import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Represents the main model (MVC architecture) for the Mover. It stores all the layers for the MapContent
@@ -132,6 +137,8 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     private Hashtable<String,Region> transferRegions;
 
     public Hashtable<String,Region> getTransferRegions() { return transferRegions; }
+
+    public Hashtable<String, Region> getSharedRegions() {return sharedRegions;}
     public Integer getTransferRegionsCount(){return transferRegions.size();}
     public int getTransferRegions3DCount() {return transferRegions.values().stream().mapToInt(Region::getRegion3dCount).sum();}
 
@@ -356,11 +363,21 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
      */
     public void updateQuery(){
         queryModel.clear();
-        List<String> transferRegionKeys = new ArrayList<>(transferRegions.keySet());
-        for (String transferRegionKey : transferRegionKeys) {
-            Region region = transferRegions.get(transferRegionKey);
-            queryModel.addElement(new QueriedRegion(region.getName(), region.getRegion3d().size(), 0));
+        //If user hasn't added a target and there are shared regions, add them to the query
+        if(TargetFTP == null && sharedRegions.size() > 0){
+            List<String> sharedRegionKeys = new ArrayList<>(sharedRegions.keySet());
+            for(String sharedRegionKey : sharedRegionKeys){
+                Region region = sharedRegions.get(sharedRegionKey);
+                queryModel.addElement(new QueriedRegion(region.getName(), region.getRegion3dCount(), 0));
+            }
+        }else {
+            List<String> transferRegionKeys = new ArrayList<>(transferRegions.keySet());
+            for (String transferRegionKey : transferRegionKeys) {
+                Region region = transferRegions.get(transferRegionKey);
+                queryModel.addElement(new QueriedRegion(region.getName(), region.getRegion3d().size(), 0));
+            }
         }
+
     }
 
     /**
@@ -398,6 +415,19 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
 
             transferRegionsLayer.update();
             sharedRegionsLayer.update();
+        }
+    }
+
+    public void removeTransferRegionFromTransferRegionLayer(Region region){
+        sourceRegions.remove(region.getName());
+        transferRegions.remove(region.getName());
+
+        //Get the shared feature with the id of the region name
+        Optional<SimpleFeature> transferOptionalFeature = transferFeatures.stream().filter(p -> p.getID().equals(region.getName())).findFirst();
+        if(transferOptionalFeature.isPresent()){
+            //Remove feature with the same id as the region name
+            transferFeatures.removeIf(f -> Objects.equals(f.getID(), region.getName()));
+            transferRegionsLayer.update();
         }
     }
 
@@ -663,7 +693,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                     //Check if the region polygon intersects with the shapefile geometry
                     if (polygonIntersectsWithShapefile(regionPoly)) {
                         //If it does, add region to transfer queue
-                        sharedRegions.put(entry.getKey(), sourceRegion);
+                        transferRegions.put(entry.getKey(), sourceRegion);
 
                         //Remove region from source layer to prevent overlay
                         sourceFeatures.removeIf(p -> Objects.equals(p.getID(), entry.getKey()));
@@ -679,7 +709,14 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
         //If TargetFTP is null (Source regions map mode), notify observer of no transfers in query (act like TargetFTP returned no regions)
         //and return
         if(TargetFTP == null) {
+            //Add the transfer regions to the queue, so that the user can se which ones can be deleted
+            if(transferRegions.size() > 0) {
+                downloadQueue.clear();
+                downloadQueue.addAll(transferRegions.values());
+                transferFeatures.addAll(getRegionsCollection(transferRegions));
+            }
             observer.previewTransfers(0);
+
             return;
         }
 
@@ -909,7 +946,7 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     }
      */
 
-    private final int threadCount = 2;
+    private final int threadCount = 4;
     public int getThreadCount() {
         return threadCount;
     }
@@ -921,7 +958,227 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
     }
 
     /**
-     * The new main method that gets the region from it download query and uploads it's to the target server,
+     * Delete the 3d region from the source server, on the same thread, but multiple threads can be run at once.
+     * While It's deleting the 3d regions, it also  simultaneously updates the model query of the JList and notifies the model observer of each change/progress
+     */
+    @Override
+    public void deleteRegions(){
+        timerModel = new TimerModel(getTransferRegionsCount(), getTransferRegions().values().stream().mapToInt(Region::getRegion3dCount).sum());
+        threadsDone = 0;
+        final int[] activeThreads = {threadCount};
+        final  boolean[] exitThread = {false};
+
+        for(int i = 0; i <threadCount; i++){
+            Runnable deleteRunnable = () -> {
+                RegionFTPClient sourceFTPClient = new RegionFTPClient(getSourceFTP());
+
+                try {
+                    if(sourceFTPClient.open()){
+                        while (!downloadQueue.isEmpty()){
+                            Region region = downloadQueue.poll();
+
+                            AtomicInteger total3DCount = new AtomicInteger(region.getRegion3dCount());
+                            AtomicBoolean error3DRegion = new AtomicBoolean(false);
+
+                            try{
+                                //Set icon in query item to deleting
+                                observer.setQueryItemIcon(region, 5);
+
+                                if(sourceFTPClient.delete2DRegion(region)) {
+                                    //Increase region2d count and update ETR
+                                    observer.updateProgress(-1);
+
+                                    List<String> region3DList = region.getRegion3d();
+
+                                    int index3d = 0;
+
+                                    observer.setQueryItemIcon(region, 5);
+                                    for (;index3d < region3DList.size(); index3d++) {
+                                        String region3D = region3DList.get(index3d);
+                                        if (!sourceFTPClient.delete3DRegion(region3D)) {
+                                            error3DRegion.set(true);
+                                            exitThread[0] = true;
+                                            observer.setQueryItemIcon(region, 6); //Set icon to delete failed
+                                        } else {
+                                            //Decrease total region3d count and update ETR
+                                            observer.updateProgress(-2);
+                                            //Decrease the 3d region count in the query item
+                                            observer.setQueryItemCount(region, total3DCount.decrementAndGet());
+                                        }
+
+                                        if(activeThreads[0] == 1)
+                                            break;
+
+                                        Thread.sleep(200);
+                                    }
+
+                                    if(activeThreads[0] == 1 && index3d + 1 < region3DList.size()){
+                                        index3d++;
+
+                                        final ConcurrentLinkedQueue<RegionFTPClient> sourceFTPClients = new ConcurrentLinkedQueue<>();
+
+                                        for(int x = 0; x < threadCount; x++){
+                                            RegionFTPClient sourceFTPClient1 = new RegionFTPClient(getSourceFTP());
+                                            try {
+                                                if(!sourceFTPClient1.open())
+                                                    throw new Exception("Could not open connection with source");
+
+                                                sourceFTPClients.add(sourceFTPClient1);
+
+                                            } catch (Exception ex) {
+                                                LogUtils.log(ex);
+                                                observer.showMessage(new String[]{"Error while logging in", ex.toString()});
+                                                activeThreads[0] -= 1;
+                                                return;
+                                            }
+                                        }
+
+                                        final ConcurrentLinkedQueue<String> region3DS = new ConcurrentLinkedQueue<>();
+
+                                        for(;index3d <region3DList.size(); index3d++){
+                                            region3DS.add(region3DList.get(index3d));
+                                        }
+
+                                        ExecutorService worker = Executors.newFixedThreadPool(threadCount);
+                                        CountDownLatch downLatch = new CountDownLatch(threadCount);
+
+                                        for(int x = 0; x < threadCount; x++){
+                                            Runnable delete3DRegions = () -> {
+                                                RegionFTPClient sourceFTPClient1 = sourceFTPClients.poll();
+                                                boolean pulledSourceFTP = true;
+
+                                                try {
+                                                    if (sourceFTPClient1 == null) {
+                                                        sourceFTPClient1 = new RegionFTPClient(getSourceFTP());
+                                                        sourceFTPClient1.open();
+                                                    }
+
+                                                    while (!region3DS.isEmpty()){
+                                                        String region3D = region3DS.poll();
+
+                                                        if (!sourceFTPClient1.delete3DRegion(region3D)) {
+                                                            error3DRegion.set(true);
+                                                            exitThread[0] = true;
+                                                            observer.setQueryItemIcon(region, 6); //Set icon to delete failed
+                                                        } else {
+                                                            //Decrease total region3d count and update ETR
+                                                            observer.updateProgress(-2);
+                                                            //Decrease the 3d region count in the query item
+                                                            observer.setQueryItemCount(region, total3DCount.decrementAndGet());
+                                                        }
+                                                    }
+
+
+                                                }catch (Exception ex){
+                                                    sourceFTPClients.add(sourceFTPClient1);
+                                                    pulledSourceFTP = false;
+
+                                                    LogUtils.log(ex);
+                                                    observer.showMessage(new String[]{"Error while deleting 3dr regions", "Region: " + region.getName(), ex.toString()});
+                                                }finally {
+                                                    if (pulledSourceFTP)
+                                                        sourceFTPClients.add(sourceFTPClient1);
+                                                }
+
+                                                downLatch.countDown();
+                                            };
+
+                                            worker.execute(delete3DRegions);
+
+                                            Thread.sleep(200);
+                                        }
+
+                                        downLatch.await();
+
+                                        while (!sourceFTPClients.isEmpty()) {
+                                            RegionFTPClient sourceFTPClient1 = sourceFTPClients.poll();
+                                            if (sourceFTPClient1 != null)
+                                                sourceFTPClient1.close();
+                                        }
+
+                                    }
+
+                                    if(!error3DRegion.get())
+                                        observer.setQueryItemIcon(region, 7);
+
+                                    //Set icon in query item to done
+                                    observer.setQueryItemIcon(region, 3);
+
+                                    //Update shared region layer
+                                    removeTransferRegionFromTransferRegionLayer(region);
+
+                                    observer.updateDeleteCounts();
+
+                                    //Make sure to keep the connection to the source server alive
+                                    sourceFTPClient.sendNoOpCommand();
+
+                                }else {
+                                    //Set icon in query item to X (failed)
+                                    observer.setQueryItemIcon(region, 4);
+                                    exitThread[0] = true;
+                                    break;
+                                }
+
+
+                            }catch (Exception ex){
+                                LogUtils.log(ex);
+                                //Set icon in query item to X (failed)
+                                observer.setQueryItemIcon(region, 4);
+                                exitThread[0] = true;
+                                break;
+                            }
+                        }
+
+                        //Closet connection to source server
+                        sourceFTPClient.close();
+
+                        //Notify observer of progress done
+                        observer.updateProgress(-3);
+                    }else{
+                        observer.showMessage(new String[]{"Could not login to Source " + getSourceFTP().getProtocol().toUpperCase() + " Server", "Check connection or login info"});
+                    }
+                }catch (Exception ex){
+                    LogUtils.log(ex);
+                    exitThread[0] = false;
+                    observer.showMessage(new String[]{"Error while deleting", ex.toString()});
+                }
+
+                observer.deleteDone(exitThread);
+                activeThreads[0] -= 1;
+            };
+
+            Thread deleteThread = new Thread(deleteRunnable);
+            deleteThread.start();
+        }
+    }
+
+    private boolean transfer3DRegion(Region region, String region3d, RegionFTPClient sourceFTP, RegionFTPClient targetFTP){
+        //Get the region3d content
+        byte[] regionContent = sourceFTP.get3DRegion(region3d);
+        if (regionContent != null) {
+
+            //Skip 3d region (region is legacy) if It's size is less than 16384 bytes (contains only air)
+            if ((region.isLegacy()) ? regionContent.length > 16384 : true) {
+                //Put the region3d content in the target remote 3d region
+                if (targetFTP.put3DRegion(regionContent, region3d)) {
+                    //Increase region3d count and update ETR
+                    observer.updateProgress(-2);
+
+                    return true;
+                }
+            } else {
+                //Decrease total region3d count and update ETR
+                observer.updateProgress(-4);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Main method that gets the region from the download query and uploads it's to the target server,
      * effectively transferring it, but note that it doesn't delete it from the source server.
      * Both download and upload are done in one the same thread, but multiple threads can be run at one. While it's transferring the region, it also
      * simultaneously updates the model query of the JList and notifies the model observer of each change/progress
@@ -933,75 +1190,154 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
         timerModel = new TimerModel(getTransferRegionsCount(), getTransferRegions().values().stream().mapToInt(Region::getRegion3dCount).sum());
         threadsDone = 0;
         final boolean[] exitThread = {false};
+        final int[] activeThreads = {threadCount};
 
-        for( int i = 0; i < threadCount; i++){
+        for( int i = 0; i < threadCount; i++) {
             Runnable getPutRunnable = () -> {
                 RegionFTPClient sourceFTPClient = new RegionFTPClient(getSourceFTP());
                 RegionFTPClient targetFTPClient = new RegionFTPClient(getTargetFTP());
 
                 try {
-                    if (sourceFTPClient.open()){
-                        if(targetFTPClient.open()){
-                            while(!downloadQueue.isEmpty()){
+                    if (sourceFTPClient.open()) {
+                        if (targetFTPClient.open()) {
+
+                            while (!downloadQueue.isEmpty()) {
                                 Region region = downloadQueue.poll();
 
-                                int total3DCount = region.getRegion3dCount();
+                                AtomicInteger total3DCount = new AtomicInteger(region.getRegion3dCount());
 
-                                try{
+                                try {
                                     //Set icon in query item to downloading
                                     observer.setQueryItemIcon(region, 1);
 
                                     byte[] regionContent = null;
 
+
                                     //Get the region 2d content
-                                    if(region.isTransfer2d())
+                                    if (region.isTransfer2d())
                                         regionContent = sourceFTPClient.get2DRegion(region);
 
-                                    if((region.isTransfer2d()) ? regionContent != null : true){
+                                    if ((region.isTransfer2d()) ? regionContent != null : true) {
                                         //Set icon in query item to uploading
-                                        observer.setQueryItemIcon(region,2);
+                                        observer.setQueryItemIcon(region, 2);
 
-                                        //Put the region 2d content int the the target remote 2d region
-                                        if((region.isTransfer2d()) ? targetFTPClient.put2DRegion(regionContent, region) : true){
+                                        //Put the region 2d content in the target remote 2d region
+                                        if ((region.isTransfer2d()) ? targetFTPClient.put2DRegion(regionContent, region) : true) {
                                             //Increase region2d count and update ETR
                                             observer.updateProgress(-1);
-
                                             List<String> region3DList = region.getRegion3d();
-                                            for (String s : region3DList) {
-                                                //Set icon in query item to downloading
-                                                observer.setQueryItemIcon(region, 1);
 
-                                                //Get the region3d content
-                                                regionContent = sourceFTPClient.get3DRegion(s);
-                                                if (regionContent != null) {
+                                            //Set icon in query item to syncing
+                                            observer.setQueryItemIcon(region, 8);
 
-                                                    //Skip 3d region (region is legacy) if It's size is less than 16384 bytes (contains only air)
-                                                    if ((region.isLegacy()) ? regionContent.length > 16384 : true) {
+                                            int index3d = 0;
+                                            for (; index3d < region3DList.size(); index3d++) {
 
-                                                        //Set icon in query item to uploading
-                                                        observer.setQueryItemIcon(region, 2);
+                                                if(transfer3DRegion(region, region3DList.get(index3d), sourceFTPClient, targetFTPClient)) {
+                                                    //Decrease the 3d region count in the query item
+                                                    observer.setQueryItemCount(region, total3DCount.decrementAndGet());
+                                                }
 
-                                                        //Put the region3d content in the target remote 3d region
-                                                        if (targetFTPClient.put3DRegion(regionContent, s)) {
-                                                            //Increase region3d count and update ETR
-                                                            observer.updateProgress(-2);
+                                                if (activeThreads[0] == 1)
+                                                    break;
+                                            }
 
-                                                            //Decrease the 3d region count in the query item
-                                                            total3DCount--;
-                                                            observer.setQueryItemCount(region, total3DCount);
+                                            if (activeThreads[0] == 1 && index3d + 1 < total3DCount.get()) {
+                                                index3d++;
 
-                                                        }
-                                                    } else {
-                                                        //Set icon in query item to uploading
-                                                        observer.setQueryItemIcon(region, 2);
-                                                        //Decrease total region3d count and update ETR
-                                                        observer.updateProgress(-4);
-                                                        //Decrease the 3d region count in the query item
-                                                        total3DCount--;
-                                                        observer.setQueryItemCount(region, total3DCount);
+                                                final ConcurrentLinkedQueue<RegionFTPClient> sourceFTPClients = new ConcurrentLinkedQueue<>();
+                                                final ConcurrentLinkedQueue<RegionFTPClient> targetFTPClients = new ConcurrentLinkedQueue<>();
+
+                                                for(int x = 0; x < threadCount; x++){
+                                                    RegionFTPClient sourceFTPClient1 = new RegionFTPClient(getSourceFTP());
+                                                    RegionFTPClient targetFTPClient1 = new RegionFTPClient(getTargetFTP());
+                                                    try {
+                                                        if(!sourceFTPClient1.open() || !targetFTPClient1.open())
+                                                            throw new Exception("Could not open connection with source or client");
+
+                                                        sourceFTPClients.add(sourceFTPClient1);
+                                                        targetFTPClients.add(targetFTPClient1);
+
+                                                    } catch (Exception ex) {
+                                                        LogUtils.log(ex);
+                                                        observer.showMessage(new String[]{"Error while logging in", ex.toString()});
+                                                        activeThreads[0] -= 1;
+                                                        return;
                                                     }
+                                                }
+
+                                                final ConcurrentLinkedQueue<String> region3DS = new ConcurrentLinkedQueue<>();
+
+                                                for (; index3d < region3DList.size(); index3d++) {
+                                                    region3DS.add(region3DList.get(index3d));
+                                                }
+
+                                                ExecutorService worker = Executors.newFixedThreadPool(threadCount);
+                                                CountDownLatch downLatch = new CountDownLatch(threadCount);
+
+
+
+                                                for (int x = 0; x < threadCount; x++) {
+                                                    Runnable getPut3D = () -> {
+                                                        RegionFTPClient sourceFTPClient1 = sourceFTPClients.poll();
+                                                        boolean pulledSourceFTP = true;
+                                                        RegionFTPClient targetFTPClient1 = targetFTPClients.poll();
+                                                        boolean pulledTargetFTP = true;
+
+                                                        try {
+                                                            if (sourceFTPClient1 == null) {
+                                                                sourceFTPClient1 = new RegionFTPClient(getSourceFTP());
+                                                                sourceFTPClient1.open();
+                                                            }
+
+                                                            if (targetFTPClient1 == null) {
+                                                                targetFTPClient1 = new RegionFTPClient(getTargetFTP());
+                                                                targetFTPClient1.open();
+                                                            }
+
+                                                            while (!region3DS.isEmpty()) {
+                                                                String region3D = region3DS.poll();
+
+
+                                                                transfer3DRegion(region, region3D, sourceFTPClient1, targetFTPClient1);
+                                                                observer.setQueryItemCount(region, total3DCount.decrementAndGet());
+                                                            }
+
+                                                        } catch (Exception e) {
+                                                            sourceFTPClients.add(sourceFTPClient1);
+                                                            pulledSourceFTP = false;
+                                                            targetFTPClients.add(targetFTPClient1);
+                                                            pulledTargetFTP = false;
+
+                                                            LogUtils.log(e);
+                                                            observer.showMessage(new String[]{"Error while syncing", "Region: " + region.getName(), e.toString()});
+                                                        } finally {
+                                                            if (pulledSourceFTP)
+                                                                sourceFTPClients.add(sourceFTPClient1);
+                                                            if (pulledTargetFTP)
+                                                                targetFTPClients.add(targetFTPClient1);
+                                                        }
+
+                                                        downLatch.countDown();
+                                                    };
+
+                                                    worker.execute(getPut3D);
 
                                                     Thread.sleep(200);
+                                                }
+
+                                                downLatch.await();
+
+                                                while (!sourceFTPClients.isEmpty()) {
+                                                    RegionFTPClient sourceFTPClient1 = sourceFTPClients.poll();
+                                                    if (sourceFTPClient1 != null)
+                                                        sourceFTPClient1.close();
+                                                }
+
+                                                while (!targetFTPClients.isEmpty()) {
+                                                    RegionFTPClient targetFTPClient1 = targetFTPClients.poll();
+                                                    if (targetFTPClient1 != null)
+                                                        targetFTPClient1.close();
                                                 }
                                             }
 
@@ -1018,20 +1354,20 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                                             sourceFTPClient.sendNoOpCommand();
                                             targetFTPClient.sendNoOpCommand();
 
-                                        }else{
+                                        } else {
                                             //Set icon in query item to X (failed)
                                             observer.setQueryItemIcon(region, 4);
                                             exitThread[0] = true;
                                             break;
                                         }
 
-                                    }else {
+                                    } else {
                                         //Set icon in query item to X (failed)
                                         observer.setQueryItemIcon(region, 4);
                                         exitThread[0] = true;
                                         break;
                                     }
-                                }catch (Exception ex){
+                                } catch(Exception ex){
                                     LogUtils.log(ex);
                                     //Set icon in query item to X (failed)
                                     observer.setQueryItemIcon(region, 4);
@@ -1048,28 +1384,21 @@ public class Mover_Model implements IMoverModel, IMouseObserver {
                             observer.updateProgress(-3);
                         }else
                             observer.showMessage(new String[]{"Could not login to Target  " + getTargetFTP().getProtocol().toUpperCase() + " Server", "Check connection or login info"});
-                    }else{
+                    } else{
                         observer.showMessage(new String[]{"Could not login to Source " + getSourceFTP().getProtocol().toUpperCase() + " Server", "Check connection or login info"});
                     }
-                }catch (Exception ex){
+                }catch(Exception ex){
                     LogUtils.log(ex);
                     exitThread[0] = false;
                     observer.showMessage(new String[]{"Error while transferring", ex.toString()});
                 }
 
                 observer.transferDone(exitThread);
+                activeThreads[0] -= 1;
             };
 
             Thread getPutThread = new Thread(getPutRunnable);
             getPutThread.start();
-
-            if(threadCount > 1)
-                try{
-                    //Start another thread with a delay
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    LogUtils.log(e);
-                }
         }
     }
 

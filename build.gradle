@@ -18,7 +18,7 @@ apply plugin: 'com.github.johnrengelman.shadow'
 mainClassName = 'com.davixdevelop.btemover.Mover_Main'
 
 group 'com.davixdevelop'
-version '1.5-' + ('git rev-list --count HEAD'.execute().text.trim())
+version '1.7-' + ('git rev-list --count HEAD'.execute().text.trim())
 
 repositories {
     maven {
@@ -54,11 +54,6 @@ repositories {
     maven {
         name = "OSGeo"
         url = "https://repo.osgeo.org/repository/release/"
-    }
-
-    maven {
-        name = "Boundless"
-        url = "https://repo.boundlessgeo.com/main/"
     }
 }
 

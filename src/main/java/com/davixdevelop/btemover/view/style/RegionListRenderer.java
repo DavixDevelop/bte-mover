@@ -17,6 +17,11 @@ public class RegionListRenderer extends DefaultListCellRenderer {
     public static final ImageIcon uploadIcon = new ImageIcon(RegionListRenderer.class.getResource("upload.png"));
     public static final ImageIcon doneIcon = new ImageIcon(RegionListRenderer.class.getResource("done.png"));
     public static final ImageIcon failedIcon = new ImageIcon(RegionListRenderer.class.getResource("failed.png"));
+    public static final ImageIcon deleteIcon = new ImageIcon(RegionListRenderer.class.getResource("delete.png"));
+    public static final ImageIcon deleteFailedIcon = new ImageIcon(RegionListRenderer.class.getResource("delete_failed.png"));
+    public static final ImageIcon deleteDoneIcon = new ImageIcon(RegionListRenderer.class.getResource("delete_done.png"));
+    public static final ImageIcon downloadUploadIcon = new ImageIcon(RegionListRenderer.class.getResource("download_upload.png"));
+
 
 
     private final QueriedRegionLabel regionLabel;

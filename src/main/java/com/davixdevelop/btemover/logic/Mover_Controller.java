@@ -19,6 +19,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -110,6 +111,9 @@ public class Mover_Controller implements IMoverModelObserver {
                         view.setTargetFTP_label(model.getTargetFTP().getProtocol() + "://" + model.getTargetFTP().getPath());
                     else
                         view.setTargetFTP_label(model.getTargetFTP().getUser() + "@" + model.getTargetFTP().getProtocol() + "://" + model.getTargetFTP().getServer() + ":" + model.getTargetFTP().getPort() + ((model.getTargetFTP().getPath() != null) ? (model.getTargetFTP().getPath().length() != 0) ? ("/" + model.getTargetFTP().getPath()) : "" : ""));
+
+                    //Disable delete button when user adds a target server
+                    view.enableDeleteButton(false);
                 }
 
                 refreshPreviewButton();
@@ -134,9 +138,7 @@ public class Mover_Controller implements IMoverModelObserver {
                     model.getTransferRegionsLayer().setVisible(true);
                 }
 
-                Runnable runnable = () -> {
-                    model.previewTransfers();
-                };
+                Runnable runnable = model::previewTransfers;
                 view.enableToolButtons(false);
                 view.showSpinner(true);
                 Thread thread = new Thread(runnable);
@@ -150,6 +152,16 @@ public class Mover_Controller implements IMoverModelObserver {
                 view.enableToolButtons(false);
                 view.enableTransferButton(false);
                 model.transferRegions();
+            }
+        });
+
+        view.initDeleteListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e){
+                view.enableToolButtons(false);
+                view.enableTransferButton(false);
+                view.enableDeleteButton(false);
+                model.deleteRegions();
             }
         });
 
@@ -355,6 +367,8 @@ public class Mover_Controller implements IMoverModelObserver {
             zoomToLayers(3);
 
             view.enableTransferButton(true);
+            view.enableDeleteButton(false);
+            view.setTransferLegendLabel("To transfer");
         }else if(status == 2){
             MessageDialog messageDialog = new MessageDialog(view, new String[]{"Can't connect to Source " + model.getSourceFTP().getProtocol().toUpperCase() + " Server", "Check connection/path/authentication"});
             messageDialog.pack();
@@ -367,17 +381,17 @@ public class Mover_Controller implements IMoverModelObserver {
             messageDialog.setVisible(true);
             int result = ((Integer)messageDialog.getOptionPane().getValue()).intValue();
             view.enableTransferButton(false);
-        }
-        else {
+        } else {
             view.enableTransferButton(false);
-            if(model.getSharedRegionsCount() == 0)
-                if(model.getSourceRegionsCount() > 0)
-                    zoomToLayers(1);
-                else
-                    zoomToLayers(0);
-            else{
-                zoomToLayers(4);
-            }
+            if(model.getTransferRegions().size() > 0){
+                view.setTransferLegendLabel("To delete");
+                view.enableDeleteButton(model.getTargetFTP() == null);
+                zoomToLayers(3);
+            }else if(model.getSourceRegionsCount() > 0)
+                zoomToLayers(1);
+            else
+                zoomToLayers(0);
+
         }
         view.setOnSourceCountLabel(String.valueOf(model.getSourceRegionsCount()));
         view.setOnTargetCountLabel(String.valueOf(model.getTargetRegionsCount()));
@@ -495,6 +509,11 @@ public class Mover_Controller implements IMoverModelObserver {
         view.setOnTransferCountLabel(String.valueOf(model.getTransferRegionsCount()));
     }
 
+    @Override
+    public void updateDeleteCounts() {
+        view.setOnSharedCountLabel(String.valueOf(model.getSharedRegionsCount()));
+    }
+
     /**
      *
      * @param status: >0 - Manual progress
@@ -570,6 +589,22 @@ public class Mover_Controller implements IMoverModelObserver {
             }
         }
 
+    }
+
+    @Override
+    public void deleteDone(boolean[] error) {
+        //Enable back the preview button and other tool buttons
+        if(model.IncreaseThreadsDone() == model.getThreadCount()){
+            view.enableToolButtons(true);
+
+            //Update the 3D regions count
+            view.setOnSource3DCountLabel(model.getSourceRegions3DCount());
+            view.setOnShared3DCountLabel(model.getSharedRegions3DCount());
+
+            if(error[0]){
+                showMessage(new String[]{"Some error's occurred during deleting", "Check log and press the Preview button to try again"});
+            }
+        }
 
     }
 

@@ -19,9 +19,11 @@ public class Mover_View extends JFrame {
     public static final ImageIcon ICON_96 = new ImageIcon(Mover_View.class.getResource("icon96.png"));
     public static final ImageIcon ICON_512 = new ImageIcon(Mover_View.class.getResource("icon.png"));
 
-
     private final JButton transferButton;
     private final JButton previewButton;
+    private final JButton deleteButton;
+
+    private final JPanel actionPanel;
     private final JButton importButton;
     private final JButton sourceFTPButton;
     private final JButton targetFTPButton;
@@ -53,7 +55,8 @@ public class Mover_View extends JFrame {
     public Mover_View(Mover_Model model){
         super();
         setTitle("BTE Mover");
-        setPreferredSize(new Dimension(1100,880));
+        //setPreferredSize(new Dimension(1100,880));
+        setPreferredSize(new Dimension(898, 690));
         getContentPane().setLayout(new BorderLayout());
 
         List<Image> icons = new ArrayList<>();
@@ -225,7 +228,6 @@ public class Mover_View extends JFrame {
         queryPanel.add(queryTitle, c);
 
         queryList = new JList(model.getQueryModel());
-        //queryList.setOpaque(false);
         queryList.setCellRenderer(new RegionListRenderer());
 
         c = new GridBagConstraints();
@@ -233,9 +235,11 @@ public class Mover_View extends JFrame {
         c.gridy = 1;
         c.fill = GridBagConstraints.BOTH;
         c.weighty = 1.0;
+        //c.weightx = 1.0;
         //c.anchor = GridBagConstraints.LAST_LINE_END;
         c.insets = new Insets(0, 0, 10, 0);
         JScrollPane queryScrollPane = new JScrollPane(queryList);
+        queryScrollPane.setPreferredSize(new Dimension(100, 0));
         queryPanel.add(queryScrollPane, c);
 
         c = new GridBagConstraints();
@@ -322,7 +326,7 @@ public class Mover_View extends JFrame {
         c.insets = new Insets(10,10,10,10);
         previewPanel.add(progressLabel, c);
 
-        JPanel actionPanel = new JPanel();
+        actionPanel = new JPanel();
         actionPanel.setOpaque(false);
         actionPanel.setBackground(UIVars.transparentColor);
         actionPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0,0));
@@ -331,19 +335,22 @@ public class Mover_View extends JFrame {
         previewButton.setEnabled(false);
         actionPanel.add(previewButton);
 
-
-
         transferButton = new RoundedButton("Transfer");
         transferButton.setEnabled(false);
 
+        deleteButton = new RoundedButton("Delete");
+        deleteButton.setEnabled(false);
+
         actionPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+
         actionPanel.add(transferButton);
 
         c = new GridBagConstraints();
         c.gridx = 1;
         c.gridy = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.anchor = GridBagConstraints.LAST_LINE_END;
+        c.weightx = 0.0;
+        c.anchor = GridBagConstraints.CENTER;
         c.insets = new Insets(10,5,10,10);
         previewPanel.add(actionPanel,c);
 
@@ -382,6 +389,8 @@ public class Mover_View extends JFrame {
     public void initChooseTargetFTPListener(ActionListener action){targetFTPButton.addActionListener(action);}
     public void initPreviewListener(ActionListener action){previewButton.addActionListener(action);}
     public void initTransferListener(ActionListener action){ transferButton.addActionListener(action);}
+
+    public void initDeleteListener(ActionListener action){deleteButton.addActionListener(action);}
     public void initExportListener(ActionListener action){mapPanel.getExportButton().addActionListener(action);}
     public void initOSMButtonListener(ActionListener action){mapPanel.getOsmToggleButton().addActionListener(action);}
     public void initExpandButtonListener(ActionListener action){mapPanel.getExpandButton().addActionListener(action);}
@@ -411,8 +420,28 @@ public class Mover_View extends JFrame {
             mapPanel.getToggleShapefileLayer().setEnabled(enable);
     }
     public void enableTransferButton(boolean enable){
-        transferButton.setEnabled(enable);}
+        transferButton.setEnabled(enable);
+        if(enable){
+            if(deleteButton.isEnabled())
+                actionPanel.remove(deleteButton);
+            actionPanel.add(transferButton);
+        }else
+            actionPanel.remove(transferButton);
+    }
 
+    public void enableDeleteButton(boolean enable){
+        deleteButton.setEnabled(enable);
+        if(enable){
+            if(transferButton.isEnabled())
+                actionPanel.remove(transferButton);
+            actionPanel.add(deleteButton);
+        }else
+            actionPanel.remove(deleteButton);
+    }
+
+    public void setTransferLegendLabel(String label){
+        transferLegendLabel.setText(label);
+    }
     public void showSpinner(boolean show){
         spinner.setVisible(show);
     }

@@ -52,7 +52,7 @@ public class QueriedRegionLabel extends JLabel {
 
         //Draw 3rd icon
         g2.drawImage(RegionListRenderer.reg3DIcon.getImage(), UIVars.queriedRegionItemInsets[1] + 5 + fontMetrics.stringWidth(text),
-                getHeight() / 2 - RegionListRenderer.reg3DIcon.getIconHeight() / 2, null);
+                getHeight() / 2 - 27 / 2, 27, 27, null);
 
         //Draw status icon
         switch (region.getStatus()){
@@ -71,7 +71,22 @@ public class QueriedRegionLabel extends JLabel {
             case 4:
                 g2.drawImage(RegionListRenderer.failedIcon.getImage(), getWidth() - UIVars.queriedRegionItemInsets[3] - RegionListRenderer.failedIcon.getIconWidth(),
                         getHeight() / 2 - RegionListRenderer.failedIcon.getIconHeight() / 2, null);
-            default:
+                break;
+            case 5:
+                g2.drawImage(RegionListRenderer.deleteIcon.getImage(), getWidth() - UIVars.queriedRegionItemInsets[3] - RegionListRenderer.deleteIcon.getIconWidth(),
+                        getHeight() / 2 - RegionListRenderer.deleteIcon.getIconHeight() / 2, null);
+                break;
+            case 6:
+                g2.drawImage(RegionListRenderer.deleteFailedIcon.getImage(), getWidth() - UIVars.queriedRegionItemInsets[3] - RegionListRenderer.deleteFailedIcon.getIconWidth(),
+                        getHeight() / 2 - RegionListRenderer.deleteFailedIcon.getIconHeight() / 2, null);
+                break;
+            case 7:
+                g2.drawImage(RegionListRenderer.deleteDoneIcon.getImage(), getWidth() - UIVars.queriedRegionItemInsets[3] - RegionListRenderer.deleteDoneIcon.getIconWidth(),
+                        getHeight() / 2 - RegionListRenderer.deleteDoneIcon.getIconHeight() / 2, null);
+            case 8:
+                g2.drawImage(RegionListRenderer.downloadUploadIcon.getImage(), getWidth() - UIVars.queriedRegionItemInsets[3] - RegionListRenderer.downloadUploadIcon.getIconWidth(),
+                        getHeight() / 2 - RegionListRenderer.downloadUploadIcon.getIconHeight() / 2, null);
+                default:
                 break;
         }
 
