@@ -4,7 +4,7 @@
 <img src="https://github.com/DavixDevelop/bte-mover/raw/master/src/main/resources/com/davixdevelop/btemover/view/icon.png" width="50%" />
 <h1>BTE Mover</h1> 
 
-[![Java](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)]()
+[![Java](https://img.shields.io/badge/Java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)]()
 [![PayPal Donate](https://img.shields.io/badge/PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://www.paypal.com/donate/?hosted_button_id=8HPGBZVX6PZFL)
 [![Linkedin](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/davixdevelop/)
 </div>
